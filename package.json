@@ -29,5 +29,8 @@
     "predeploy": "wrangler d1 migrations apply DB --remote",
     "seedLocalD1": "wrangler d1 migrations apply DB --local",
     "types": "wrangler types"
+  },
+  "dependencies": {
+    "duolingo": "file:"
   }
 }
