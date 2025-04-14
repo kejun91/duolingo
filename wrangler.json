@@ -1,0 +1,16 @@
+{
+  "compatibility_date": "2025-04-01",
+  "main": "src/index.ts",
+  "name": "duolingo",
+  "upload_source_maps": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "1406ab01-3558-41f9-a534-b421341732e2",
+      "database_name": "duolingo-d1"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
