@@ -46,7 +46,7 @@ export default {
         const creationDate = data.creationDate ?? null;
         const username = data.username ?? null;
         const name = data.name ?? null;
-        const snapshotDate = Date.now();
+        const snapshotDate = timestamp;
 
         // Step 4: Update the user row
         await env.DB.prepare(`
