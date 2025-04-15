@@ -16,8 +16,19 @@ export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     console.log("Hourly task running...");
 
+    // Get the current date and time
+    const now = new Date();
+
+    // Set the minutes, seconds, and milliseconds to 0 to get the start of the current hour
+    now.setMinutes(0);
+    now.setSeconds(0);
+    now.setMilliseconds(0);
+
+    // Get the timestamp (in milliseconds) of the first second of the current hour
+    const timestamp = now.getTime();
+
     // Step 1: Get all user IDs
-    const { results: users } = await env.DB.prepare("SELECT id FROM users").all();
+    const { results: users } = await env.DB.prepare("SELECT id FROM users WHERE snapshotDate < " + timestamp + " LIMIT 50").all();
 
     for (const { id } of users) {
       try {
