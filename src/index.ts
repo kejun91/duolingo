@@ -28,7 +28,7 @@ export default {
     const timestamp = now.getTime();
 
     // Step 1: Get all user IDs
-    const { results: users } = await env.DB.prepare("SELECT id FROM users WHERE snapshotDate < " + timestamp + " LIMIT 50").all();
+    const { results: users } = await env.DB.prepare("SELECT id FROM users WHERE snapshotDate < " + timestamp + " OR snapshotDate IS NULL LIMIT 50").all();
 
     for (const { id } of users) {
       try {
