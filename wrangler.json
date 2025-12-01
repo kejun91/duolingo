@@ -6,8 +6,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_id": "1406ab01-3558-41f9-a534-b421341732e2",
-      "database_name": "duolingo-d1"
+      "database_id": "34a8a80c-c110-4e70-807c-99a7cecb5cb3",
+      "database_name": "duolingo"
     }
   ],
   "observability": {
