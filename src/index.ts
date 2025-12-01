@@ -29,10 +29,28 @@ export default {
           });
         }
 
-        // Insert new user with is_tracked = 1
+        // Insert new user with is_tracked = 1, then fetch profile to fill username/name
         await env.DB.prepare("INSERT INTO users (id, is_tracked) VALUES (?, 1)")
           .bind(userId)
           .run();
+
+        // Fetch user profile from Duolingo and update username/name
+        try {
+          const res = await fetch(`https://www.duolingo.com/2017-06-30/users/${userId}`);
+          if (res.ok) {
+            const data: any = await res.json();
+            const username = data?.username ?? null;
+            const name = data?.name ?? null;
+            if (username || name) {
+              await env.DB.prepare("UPDATE users SET username = COALESCE(?, username), name = COALESCE(?, name) WHERE id = ?")
+                .bind(username, name, userId)
+                .run();
+            }
+          }
+        } catch (e) {
+          // Non-fatal: adding a user should still succeed even if Duolingo fetch fails
+          console.warn(`Failed to fetch profile for ${userId}:`, e);
+        }
 
         return new Response(JSON.stringify({ success: true, userId }), {
           headers: { "content-type": "application/json" },
@@ -143,10 +161,11 @@ export default {
     }
 
     // Main dashboard
-    const startDate = url.searchParams.get("startDate") || getDateDaysAgo(7);
+    const startDate = url.searchParams.get("startDate") || getMonthStart();
     const endDate = url.searchParams.get("endDate") || getDateDaysAgo(0);
 
-    const rankings = await calculateRankings(env.DB, startDate, endDate);
+    const streakMin = Number(url.searchParams.get("streakMin") || "30");
+    const rankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
     const { results: trackedUsers } = await env.DB.prepare(
       "SELECT id FROM users WHERE is_tracked = 1 ORDER BY id"
     ).all();
@@ -162,7 +181,7 @@ export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     console.log("Daily snapshot task running at 00:00 UTC...");
 
-    const now = new Date();
+  const now = new Date();
     const snapshotDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
     const snapshotTimestamp = Math.floor(now.getTime() / 1000); // Unix timestamp in seconds
 
@@ -193,6 +212,15 @@ export default {
           .bind(userId, userInfoJson, snapshotDate, snapshotTimestamp)
           .run();
 
+        // Also backfill/update users.username and users.name based on latest fetch
+        const username = data?.username ?? null;
+        const name = data?.name ?? null;
+        if (username || name) {
+          await env.DB.prepare("UPDATE users SET username = COALESCE(?, username), name = COALESCE(?, name) WHERE id = ?")
+            .bind(username, name, userId)
+            .run();
+        }
+
         console.log(`Successfully updated user ${userId} (${data.username ?? 'unknown'})`);
 
       } catch (err) {
@@ -205,7 +233,7 @@ export default {
 };
 
 // Helper: Calculate rankings between two dates
-async function calculateRankings(db: D1Database, startDate: string, endDate: string) {
+async function calculateRankings(db: D1Database, startDate: string, endDate: string, streakMin = 0) {
   const { results: startSnapshots } = await db.prepare(`
     SELECT user_id, userInfo
     FROM user_daily_snapshots
@@ -244,6 +272,12 @@ async function calculateRankings(db: D1Database, startDate: string, endDate: str
       const daysDiff = Math.max(1, getDaysDifference(startDate, endDate));
       const dailyAverage = Math.round(increase / daysDiff);
 
+  // Optional streak filter (Duolingo uses `streak`)
+  const endStreak = (end.streak ?? 0) as number;
+      if (streakMin && endStreak < streakMin) {
+        continue;
+      }
+
       rankings.push({
         userId,
         username: end.username ?? start.username ?? `User ${userId}`,
@@ -252,6 +286,7 @@ async function calculateRankings(db: D1Database, startDate: string, endDate: str
         endXp,
         increase,
         dailyAverage,
+        streak: endStreak,
       });
     }
   }
@@ -275,4 +310,11 @@ function getDaysDifference(date1: string, date2: string): number {
   const d2 = new Date(date2);
   const diffTime = Math.abs(d2.getTime() - d1.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Helper: First day of current month (YYYY-MM-DD)
+function getMonthStart(): string {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  return first.toISOString().split('T')[0];
 }

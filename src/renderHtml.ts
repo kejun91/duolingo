@@ -368,7 +368,7 @@ export function renderDashboard(
         <div class="container">
           <header>
             <h1>🦉 Duolingo Progress Tracker</h1>
-            <p class="subtitle">Track daily, weekly, and monthly XP progress</p>
+            <p class="subtitle">Track XP progress and rankings over time</p>
           </header>
 
           <div class="tabs">
@@ -410,6 +410,17 @@ export function renderDashboard(
                     <input type="date" id="toDate" value="${endDate}" />
                   </div>
                   
+                  <div class="date-input-group">
+                    <label>Streak Filter:</label>
+                    <select id="streakMin">
+                      <option value="0">All streaks</option>
+                      <option value="7">Streak ≥ 7</option>
+                      <option value="30" selected>Streak ≥ 30</option>
+                      <option value="60">Streak ≥ 60</option>
+                      <option value="100">Streak ≥ 100</option>
+                    </select>
+                  </div>
+                  
                   <div class="date-input-group" style="display: flex; align-items: flex-end;">
                     <button class="btn btn-primary" onclick="updateRankings()" style="width: 100%; padding: 10px 20px;">
                       🔍 Update Rankings
@@ -449,6 +460,7 @@ export function renderDashboard(
                       <th>End XP</th>
                       <th>XP Gained</th>
                       <th>Daily Average</th>
+                      <th>Streak</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -481,7 +493,8 @@ export function renderDashboard(
                           <td>${r.startXp.toLocaleString()}</td>
                           <td style="font-weight: 600;">${r.endXp.toLocaleString()}</td>
                           <td><span class="xp-badge ${xpClass}">${r.increase >= 0 ? '+' : ''}${r.increase.toLocaleString()} XP</span></td>
-                          <td>${r.dailyAverage >= 0 ? '+' : ''}${r.dailyAverage.toLocaleString()}/day</td>
+              <td>${r.dailyAverage >= 0 ? '+' : ''}${r.dailyAverage.toLocaleString()}/day</td>
+              <td>${(r.streak ?? 0).toLocaleString()}</td>
                           <td><a href="/api/user-history?userId=${r.userId}">📈 View History</a></td>
                         </tr>
                       `;
@@ -556,8 +569,19 @@ export function renderDashboard(
           function updateRankings() {
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
-            window.location.href = \`/?startDate=\${fromDate}&endDate=\${toDate}\`;
+            const streakMin = document.getElementById('streakMin').value;
+            const params = new URLSearchParams({ startDate: fromDate, endDate: toDate });
+            if (streakMin && Number(streakMin) > 0) params.set('streakMin', streakMin);
+            window.location.href = '/?' + params.toString();
           }
+
+          // Initialize streak filter from current URL
+          (function initFiltersFromUrl(){
+            const params = new URLSearchParams(window.location.search);
+            const streakMin = params.get('streakMin') || '30';
+            const el = document.getElementById('streakMin');
+            if (el) el.value = streakMin;
+          })();
 
           function setDateRange(type) {
             const today = new Date();
