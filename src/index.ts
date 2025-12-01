@@ -144,6 +144,7 @@ export default {
     if (path === "/api/rankings" && request.method === "GET") {
       const startDate = url.searchParams.get("startDate");
       const endDate = url.searchParams.get("endDate");
+      const streakMin = Number(url.searchParams.get("streakMin") || "0");
 
       if (!startDate || !endDate) {
         return new Response(JSON.stringify({ error: "Missing date parameters" }), {
@@ -152,8 +153,8 @@ export default {
         });
       }
 
-      // Get snapshots for start and end dates
-      const rankings = await calculateRankings(env.DB, startDate, endDate);
+  // Get snapshots for start and end dates (with optional streak filter)
+  const rankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
 
       return new Response(JSON.stringify(rankings), {
         headers: { "content-type": "application/json" },
@@ -167,10 +168,10 @@ export default {
     const streakMin = Number(url.searchParams.get("streakMin") || "30");
     const rankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
     const { results: trackedUsers } = await env.DB.prepare(
-      "SELECT id FROM users WHERE is_tracked = 1 ORDER BY id"
+      "SELECT id, username, name FROM users WHERE is_tracked = 1 ORDER BY id"
     ).all();
     const { results: untrackedUsers } = await env.DB.prepare(
-      "SELECT id FROM users WHERE is_tracked = 0 ORDER BY id"
+      "SELECT id, username, name FROM users WHERE is_tracked = 0 ORDER BY id"
     ).all();
 
     return new Response(renderDashboard(rankings, trackedUsers, untrackedUsers, startDate, endDate), {

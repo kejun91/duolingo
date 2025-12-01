@@ -190,6 +190,22 @@ export function renderDashboard(
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(88, 204, 2, 0.3);
           }
+          .btn-primary.loading {
+            opacity: 0.8;
+            cursor: wait;
+          }
+          .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #fff;
+            border-top-color: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+          }
+          @keyframes spin { to { transform: rotate(360deg); } }
           
           .btn-danger {
             background: #ea2b2b;
@@ -346,6 +362,18 @@ export function renderDashboard(
             outline: none;
             border-color: #1cb0f6;
           }
+          .date-input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #fff;
+          }
+          .date-input-group select:focus {
+            outline: none;
+            border-color: #1cb0f6;
+          }
           
           .current-range {
             color: #666;
@@ -422,8 +450,8 @@ export function renderDashboard(
                   </div>
                   
                   <div class="date-input-group" style="display: flex; align-items: flex-end;">
-                    <button class="btn btn-primary" onclick="updateRankings()" style="width: 100%; padding: 10px 20px;">
-                      🔍 Update Rankings
+                    <button id="updateBtn" class="btn btn-primary" onclick="updateRankings()" style="width: 100%; padding: 10px 20px;">
+                      <span class="btn-text">🔍 Update Rankings</span>
                     </button>
                   </div>
                 </div>
@@ -436,15 +464,15 @@ export function renderDashboard(
               <!-- Stats Grid -->
               <div class="stats-grid">
                 <div class="stat-card">
-                  <div class="stat-value">${rankings.length}</div>
+                  <div class="stat-value" id="stat-active-users">${rankings.length}</div>
                   <div class="stat-label">Active Users</div>
                 </div>
                 <div class="stat-card">
-                  <div class="stat-value">${totalXpGained.toLocaleString()}</div>
+                  <div class="stat-value" id="stat-total-xp">${totalXpGained.toLocaleString()}</div>
                   <div class="stat-label">Total XP Gained</div>
                 </div>
                 <div class="stat-card">
-                  <div class="stat-value">${avgXpGained.toLocaleString()}</div>
+                  <div class="stat-value" id="stat-avg-xp">${avgXpGained.toLocaleString()}</div>
                   <div class="stat-label">Average XP per User</div>
                 </div>
               </div>
@@ -464,7 +492,7 @@ export function renderDashboard(
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="rankings-body">
                     ${rankings.length === 0 ? `
                       <tr>
                         <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
@@ -525,30 +553,44 @@ export function renderDashboard(
                 </div>
               ` : `
                 <div class="user-list">
-                  ${trackedUsers.map(u => `
-                    <div class="user-card">
-                      <div class="user-info">
-                        <h3>User ${u.id}</h3>
-                        <p>ID: ${u.id}</p>
+                  ${trackedUsers.map(u => {
+                    const uname = u.username ? escapeHtml(u.username) : `User ${u.id}`;
+                    const realName = u.name ? `<div style=\"font-size:0.8em;color:#555;\">${escapeHtml(u.name)}</div>` : '';
+                    const profile = u.username ? `<a href=\"https://www.duolingo.com/profile/${encodeURIComponent(u.username)}\" target=\"_blank\" style=\"font-size:0.7em;color:#1cb0f6;\">Profile ↗</a>` : '';
+                    return `
+                      <div class=\"user-card\">
+                        <div class=\"user-info\">
+                          <h3>${uname}</h3>
+                          <p style=\"font-size:0.75em;color:#777;\">ID: ${u.id}</p>
+                          ${realName}
+                          ${profile}
+                        </div>
+                        <button class=\"btn btn-danger\" onclick=\"untrackUser(${u.id})\">Untrack</button>
                       </div>
-                      <button class="btn btn-danger" onclick="untrackUser(${u.id})">Untrack</button>
-                    </div>
-                  `).join('')}
+                    `;
+                  }).join('')}
                 </div>
               `}
 
               ${untrackedUsers.length > 0 ? `
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">⏸️ Untracked Users (${untrackedUsers.length})</h3>
                 <div class="user-list">
-                  ${untrackedUsers.map(u => `
-                    <div class="user-card" style="opacity: 0.7;">
-                      <div class="user-info">
-                        <h3>User ${u.id}</h3>
-                        <p>ID: ${u.id}</p>
+                  ${untrackedUsers.map(u => {
+                    const uname = u.username ? escapeHtml(u.username) : `User ${u.id}`;
+                    const realName = u.name ? `<div style=\"font-size:0.8em;color:#555;\">${escapeHtml(u.name)}</div>` : '';
+                    const profile = u.username ? `<a href=\"https://www.duolingo.com/profile/${encodeURIComponent(u.username)}\" target=\"_blank\" style=\"font-size:0.7em;color:#1cb0f6;\">Profile ↗</a>` : '';
+                    return `
+                      <div class=\"user-card\" style=\"opacity:0.7;\">
+                        <div class=\"user-info\">
+                          <h3>${uname}</h3>
+                          <p style=\"font-size:0.75em;color:#777;\">ID: ${u.id}</p>
+                          ${realName}
+                          ${profile}
+                        </div>
+                        <button class=\"btn btn-secondary\" onclick=\"retrackUser(${u.id})\">Retrack</button>
                       </div>
-                      <button class="btn btn-secondary" onclick="retrackUser(${u.id})">Retrack</button>
-                    </div>
-                  `).join('')}
+                    `;
+                  }).join('')}
                 </div>
               ` : ''}
             </div>
@@ -566,13 +608,74 @@ export function renderDashboard(
             document.getElementById(tabName).classList.add('active');
           }
 
-          function updateRankings() {
+          async function updateRankings() {
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
             const streakMin = document.getElementById('streakMin').value;
             const params = new URLSearchParams({ startDate: fromDate, endDate: toDate });
             if (streakMin && Number(streakMin) > 0) params.set('streakMin', streakMin);
-            window.location.href = '/?' + params.toString();
+            const btn = document.getElementById('updateBtn');
+            if (btn) {
+              btn.classList.add('loading');
+              btn.setAttribute('disabled','true');
+              const txt = btn.querySelector('.btn-text');
+              if (txt) txt.innerHTML = '<span class="spinner"></span>Loading';
+            }
+            try {
+              const res = await fetch('/api/rankings?' + params.toString());
+              const data = await res.json();
+              renderRankingsTable(data);
+              updateStats(data);
+              history.replaceState(null, '', '/?' + params.toString());
+            } catch (e) {
+              showMessage('❌ Failed to load rankings: ' + e, 'error');
+            } finally {
+              if (btn) {
+                btn.classList.remove('loading');
+                btn.removeAttribute('disabled');
+                const txt = btn.querySelector('.btn-text');
+                if (txt) txt.textContent = '🔍 Update Rankings';
+              }
+            }
+          }
+          function rankEmoji(i){ return i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1); }
+          function renderRankingsTable(rankings){
+            const tbody = document.getElementById('rankings-body');
+            if (!tbody) return;
+            if (!Array.isArray(rankings) || rankings.length === 0){
+              tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No data available for the selected range.</td></tr>';
+              return;
+            }
+            let rows = '';
+            for (let i=0;i<rankings.length;i++) {
+              const r = rankings[i];
+              const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+              const xpClass = r.increase>0?'xp-positive':(r.increase<0?'xp-negative':'xp-neutral');
+              const username = r.username || ('User ' + r.userId);
+              const nameHtml = r.name ? '<div style="font-size:0.85em;color:#666;">'+escapeHtml(r.name)+'</div>' : '';
+              rows += '<tr>'+
+                '<td class="rank '+rankClass+'">'+rankEmoji(i)+'</td>'+
+                '<td><div class="username">'+escapeHtml(username)+'</div>'+nameHtml+'</td>'+
+                '<td>'+Number(r.startXp||0).toLocaleString()+'</td>'+
+                '<td style="font-weight:600;">'+Number(r.endXp||0).toLocaleString()+'</td>'+
+                '<td><span class="xp-badge '+xpClass+'">'+(r.increase>=0?'+':'')+Number(r.increase||0).toLocaleString()+' XP</span></td>'+
+                '<td>'+(r.dailyAverage>=0?'+':'')+Number(r.dailyAverage||0).toLocaleString()+'/day</td>'+
+                '<td>'+Number(r.streak||0).toLocaleString()+'</td>'+
+                '<td><a href="/api/user-history?userId='+r.userId+'">📈 View History</a></td>'+
+              '</tr>';
+            }
+            tbody.innerHTML = rows;
+          }
+          function updateStats(rankings){
+            if (!Array.isArray(rankings)) return;
+            let totalXp=0; for (const r of rankings) totalXp += (r.increase||0);
+            const avgXp = rankings.length? Math.round(totalXp / rankings.length) : 0;
+            const activeUsersEl = document.getElementById('stat-active-users');
+            const totalXpEl = document.getElementById('stat-total-xp');
+            const avgXpEl = document.getElementById('stat-avg-xp');
+            if (activeUsersEl) activeUsersEl.textContent = rankings.length.toString();
+            if (totalXpEl) totalXpEl.textContent = totalXp.toLocaleString();
+            if (avgXpEl) avgXpEl.textContent = avgXp.toLocaleString();
           }
 
           // Initialize streak filter from current URL
