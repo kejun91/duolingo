@@ -3,7 +3,8 @@ export function renderDashboard(
   trackedUsers: any[],
   untrackedUsers: any[],
   startDate: string,
-  endDate: string
+  endDate: string,
+  streakMin: number = 30
 ) {
   const totalXpGained = rankings.reduce((sum, r) => sum + r.increase, 0);
   const avgXpGained = rankings.length > 0 ? Math.round(totalXpGained / rankings.length) : 0;
@@ -441,11 +442,11 @@ export function renderDashboard(
                   <div class="date-input-group">
                     <label>Streak Filter:</label>
                     <select id="streakMin">
-                      <option value="0">All streaks</option>
-                      <option value="7">Streak ≥ 7</option>
-                      <option value="30" selected>Streak ≥ 30</option>
-                      <option value="60">Streak ≥ 60</option>
-                      <option value="100">Streak ≥ 100</option>
+                      <option value="0" ${streakMin === 0 ? 'selected' : ''}>All streaks</option>
+                      <option value="7" ${streakMin === 7 ? 'selected' : ''}>Streak ≥ 7</option>
+                      <option value="30" ${streakMin === 30 ? 'selected' : ''}>Streak ≥ 30</option>
+                      <option value="60" ${streakMin === 60 ? 'selected' : ''}>Streak ≥ 60</option>
+                      <option value="100" ${streakMin === 100 ? 'selected' : ''}>Streak ≥ 100</option>
                     </select>
                   </div>
                   
@@ -612,8 +613,7 @@ export function renderDashboard(
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
             const streakMin = document.getElementById('streakMin').value;
-            const params = new URLSearchParams({ startDate: fromDate, endDate: toDate });
-            if (streakMin && Number(streakMin) > 0) params.set('streakMin', streakMin);
+            const params = new URLSearchParams({ startDate: fromDate, endDate: toDate, streakMin: streakMin });
             const btn = document.getElementById('updateBtn');
             if (btn) {
               btn.classList.add('loading');

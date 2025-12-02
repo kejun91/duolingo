@@ -153,8 +153,15 @@ export default {
         });
       }
 
-  // Get snapshots for start and end dates (with optional streak filter)
-  const rankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
+      // Get snapshots for start and end dates (with optional streak filter)
+      const allRankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
+      
+      // Filter to only show tracked users
+      const { results: trackedUsersList } = await env.DB.prepare(
+        "SELECT id FROM users WHERE is_tracked = 1"
+      ).all();
+      const trackedUserIds = new Set(trackedUsersList.map((u: any) => u.id));
+      const rankings = allRankings.filter(r => trackedUserIds.has(r.userId));
 
       return new Response(JSON.stringify(rankings), {
         headers: { "content-type": "application/json" },
@@ -166,7 +173,15 @@ export default {
     const endDate = url.searchParams.get("endDate") || getDateDaysAgo(0);
 
     const streakMin = Number(url.searchParams.get("streakMin") || "30");
-    const rankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
+    const allRankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
+    
+    // Filter rankings to only show tracked users
+    const { results: trackedUsersList } = await env.DB.prepare(
+      "SELECT id FROM users WHERE is_tracked = 1"
+    ).all();
+    const trackedUserIds = new Set(trackedUsersList.map((u: any) => u.id));
+    const rankings = allRankings.filter(r => trackedUserIds.has(r.userId));
+    
     const { results: trackedUsers } = await env.DB.prepare(
       "SELECT id, username, name FROM users WHERE is_tracked = 1 ORDER BY id"
     ).all();
@@ -174,7 +189,7 @@ export default {
       "SELECT id, username, name FROM users WHERE is_tracked = 0 ORDER BY id"
     ).all();
 
-    return new Response(renderDashboard(rankings, trackedUsers, untrackedUsers, startDate, endDate), {
+    return new Response(renderDashboard(rankings, trackedUsers, untrackedUsers, startDate, endDate, streakMin), {
       headers: { "content-type": "text/html" },
     });
   },
