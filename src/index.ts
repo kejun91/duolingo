@@ -186,9 +186,9 @@ export default {
     const snapshotDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
     const snapshotTimestamp = Math.floor(now.getTime() / 1000); // Unix timestamp in seconds
 
-    // Get all tracked users
+    // Get all users (regardless of is_tracked status - we fetch data for everyone)
     const { results: users } = await env.DB.prepare(
-      "SELECT id FROM users WHERE is_tracked = 1"
+      "SELECT id FROM users"
     ).all();
 
     for (const user of users) {
