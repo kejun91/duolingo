@@ -24,14 +24,15 @@
   },
   "scripts": {
     "check": "tsc && wrangler deploy --dry-run",
-    "deploy": "wrangler deploy",
+    "deploy": "npm run frontend:install && npm run frontend:build && wrangler deploy",
     "dev": "wrangler dev",
     "predeploy": "wrangler d1 migrations apply DB --remote",
     "seedLocalD1": "wrangler d1 migrations apply DB --local",
     "types": "wrangler types",
     "frontend:dev": "cd frontend && npm run dev",
     "frontend:build": "cd frontend && npm run build",
-    "frontend:install": "cd frontend && npm install"
+    "frontend:install": "cd frontend && npm install",
+    "build": "npm run frontend:install && npm run frontend:build"
   },
   "dependencies": {
     "duolingo": "file:"
