@@ -1,9 +1,34 @@
-import { renderDashboard, renderUserHistory } from "./renderHtml";
-
 export default {
-  async fetch(request: Request, env: Env) {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    // Serve static files from public directory
+    if (!path.startsWith('/api')) {
+      try {
+        // Try to fetch from assets first (Vite build output)
+        let assetPath = path === '/' ? '/index.html' : path;
+        const assetUrl = new URL(assetPath, request.url);
+        
+        // @ts-ignore - ASSETS is bound in wrangler.toml
+        const asset = await env.ASSETS.fetch(assetUrl);
+        
+        if (asset.status === 200) {
+          return asset;
+        }
+        
+        // If not found and not a file extension, serve index.html for SPA routing
+        if (!path.includes('.')) {
+          const indexUrl = new URL('/index.html', request.url);
+          // @ts-ignore
+          return env.ASSETS.fetch(indexUrl);
+        }
+        
+        return asset;
+      } catch (e) {
+        // Fall through to API routes if asset serving fails
+      }
+    }
 
     // API: Add user
     if (path === "/api/add-user" && request.method === "POST") {
@@ -117,6 +142,22 @@ export default {
       }
     }
 
+    // API: Get users
+    if (path === "/api/users" && request.method === "GET") {
+      const tracked = url.searchParams.get("tracked");
+      const query = tracked !== null
+        ? "SELECT id, username, name FROM users WHERE is_tracked = ? ORDER BY id"
+        : "SELECT id, username, name FROM users ORDER BY id";
+      
+      const { results } = tracked !== null
+        ? await env.DB.prepare(query).bind(tracked).all()
+        : await env.DB.prepare(query).all();
+
+      return new Response(JSON.stringify(results), {
+        headers: { "content-type": "application/json" },
+      });
+    }
+
     // API: Get user history
     if (path === "/api/user-history" && request.method === "GET") {
       const userId = url.searchParams.get("userId");
@@ -135,8 +176,14 @@ export default {
         LIMIT 100
       `).bind(userId).all();
 
-      return new Response(renderUserHistory(results, userId), {
-        headers: { "content-type": "text/html" },
+      // Parse userInfo JSON for each snapshot
+      const snapshots = results.map((row: any) => ({
+        date: row.snapshot_date,
+        data: row.userInfo ? JSON.parse(row.userInfo) : {}
+      }));
+
+      return new Response(JSON.stringify(snapshots), {
+        headers: { "content-type": "application/json" },
       });
     }
 
@@ -168,29 +215,10 @@ export default {
       });
     }
 
-    // Main dashboard
-    const startDate = url.searchParams.get("startDate") || getMonthStart();
-    const endDate = url.searchParams.get("endDate") || getDateDaysAgo(0);
-
-    const streakMin = Number(url.searchParams.get("streakMin") || "30");
-    const allRankings = await calculateRankings(env.DB, startDate, endDate, streakMin);
-    
-    // Filter rankings to only show tracked users
-    const { results: trackedUsersList } = await env.DB.prepare(
-      "SELECT id FROM users WHERE is_tracked = 1"
-    ).all();
-    const trackedUserIds = new Set(trackedUsersList.map((u: any) => u.id));
-    const rankings = allRankings.filter(r => trackedUserIds.has(r.userId));
-    
-    const { results: trackedUsers } = await env.DB.prepare(
-      "SELECT id, username, name FROM users WHERE is_tracked = 1 ORDER BY id"
-    ).all();
-    const { results: untrackedUsers } = await env.DB.prepare(
-      "SELECT id, username, name FROM users WHERE is_tracked = 0 ORDER BY id"
-    ).all();
-
-    return new Response(renderDashboard(rankings, trackedUsers, untrackedUsers, startDate, endDate, streakMin), {
-      headers: { "content-type": "text/html" },
+    // If no API route matched, return 404
+    return new Response(JSON.stringify({ error: "Not found" }), {
+      status: 404,
+      headers: { "content-type": "application/json" },
     });
   },
 

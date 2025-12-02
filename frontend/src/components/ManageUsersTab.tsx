@@ -1,0 +1,160 @@
+import { useState } from 'react'
+import { User } from '../App'
+import './ManageUsersTab.css'
+
+interface ManageUsersTabProps {
+  trackedUsers: User[]
+  untrackedUsers: User[]
+  onRefresh: () => void
+}
+
+export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh }: ManageUsersTabProps) {
+  const [newUserId, setNewUserId] = useState('')
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const showMessage = (text: string, type: 'success' | 'error') => {
+    setMessage({ text, type })
+    setTimeout(() => setMessage(null), 5000)
+  }
+
+  const addUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newUserId.trim()) return
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/add-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: newUserId.trim() })
+      })
+      const data = await res.json()
+      
+      if (res.ok) {
+        showMessage(`✅ User ${newUserId} added successfully!`, 'success')
+        setNewUserId('')
+        onRefresh()
+      } else {
+        showMessage(`❌ ${data.error}`, 'error')
+      }
+    } catch (error) {
+      showMessage(`❌ Failed to add user: ${error}`, 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const untrackUser = async (userId: number) => {
+    try {
+      const res = await fetch('/api/untrack-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: String(userId) })
+      })
+      
+      if (res.ok) {
+        showMessage(`✅ User untracked successfully`, 'success')
+        onRefresh()
+      } else {
+        const data = await res.json()
+        showMessage(`❌ ${data.error}`, 'error')
+      }
+    } catch (error) {
+      showMessage(`❌ Failed to untrack user: ${error}`, 'error')
+    }
+  }
+
+  const retrackUser = async (userId: number) => {
+    try {
+      const res = await fetch('/api/retrack-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: String(userId) })
+      })
+      
+      if (res.ok) {
+        showMessage(`✅ User retracked successfully`, 'success')
+        onRefresh()
+      } else {
+        const data = await res.json()
+        showMessage(`❌ ${data.error}`, 'error')
+      }
+    } catch (error) {
+      showMessage(`❌ Failed to retrack user: ${error}`, 'error')
+    }
+  }
+
+  return (
+    <div className="card">
+      <h2 style={{ marginBottom: '20px', color: '#333' }}>👥 Manage Users</h2>
+
+      {message && (
+        <div className={`message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
+      <form onSubmit={addUser} className="user-form">
+        <input
+          type="text"
+          placeholder="Enter Duolingo User ID"
+          value={newUserId}
+          onChange={(e) => setNewUserId(e.target.value)}
+        />
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? (
+            <>
+              <span className="spinner"></span>Adding...
+            </>
+          ) : (
+            '➕ Add User'
+          )}
+        </button>
+      </form>
+
+      <h3 style={{ marginTop: '30px', marginBottom: '15px', color: '#333' }}>
+        📊 Tracked Users ({trackedUsers.length})
+      </h3>
+      <div className="user-list">
+        {trackedUsers.map((user) => (
+          <div key={user.id} className="user-card">
+            <div className="user-info">
+              <h3>{user.username || `User ${user.id}`}</h3>
+              <p>{user.name || `ID: ${user.id}`}</p>
+            </div>
+            <button className="btn-danger" onClick={() => untrackUser(user.id)}>
+              🗑️ Untrack
+            </button>
+          </div>
+        ))}
+        {trackedUsers.length === 0 && (
+          <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
+            No tracked users. Add some users above to get started!
+          </p>
+        )}
+      </div>
+
+      {untrackedUsers.length > 0 && (
+        <>
+          <h3 style={{ marginTop: '30px', marginBottom: '15px', color: '#333' }}>
+            💤 Untracked Users ({untrackedUsers.length})
+          </h3>
+          <div className="user-list">
+            {untrackedUsers.map((user) => (
+              <div key={user.id} className="user-card" style={{ opacity: 0.7 }}>
+                <div className="user-info">
+                  <h3>{user.username || `User ${user.id}`}</h3>
+                  <p>{user.name || `ID: ${user.id}`}</p>
+                </div>
+                <button className="btn-secondary" onClick={() => retrackUser(user.id)}>
+                  🔄 Retrack
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

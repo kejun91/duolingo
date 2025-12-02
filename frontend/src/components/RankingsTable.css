@@ -1,0 +1,71 @@
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ranking-table th {
+  background: #f7f7f7;
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+}
+
+.ranking-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ranking-table tr:hover {
+  background: #f9f9f9;
+}
+
+.rank {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #999;
+  width: 60px;
+}
+
+.rank.gold {
+  color: #ffd700;
+}
+
+.rank.silver {
+  color: #c0c0c0;
+}
+
+.rank.bronze {
+  color: #cd7f32;
+}
+
+.username {
+  font-weight: 600;
+  color: #333;
+}
+
+.xp-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.xp-positive {
+  background: #58cc02;
+  color: white;
+}
+
+.xp-negative {
+  background: #ea2b2b;
+  color: white;
+}
+
+.xp-neutral {
+  background: #e5e5e5;
+  color: #666;
+}

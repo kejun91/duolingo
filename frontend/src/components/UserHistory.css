@@ -1,0 +1,78 @@
+.user-history {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-item .stat-label {
+  font-size: 0.9em;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.stat-item .stat-value {
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th {
+  background: #f7f7f7;
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+}
+
+.history-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.history-table tr:hover {
+  background: #f9f9f9;
+}
+
+.change-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.change-badge.positive {
+  background: #58cc02;
+  color: white;
+}
+
+.change-badge.negative {
+  background: #ea2b2b;
+  color: white;
+}
+
+.change-badge.neutral {
+  background: #e5e5e5;
+  color: #666;
+}

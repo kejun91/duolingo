@@ -181,3 +181,6 @@ build/
 
 # Turbo output
 .turbo/
+
+# Vite build output (generated from frontend/)
+public/

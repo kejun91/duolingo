@@ -1,0 +1,91 @@
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: #58cc02;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #4db002;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(88, 204, 2, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: #ea2b2b;
+  color: white;
+  padding: 8px 16px;
+  font-size: 0.9em;
+}
+
+.btn-danger:hover {
+  background: #d12020;
+}
+
+.btn-secondary {
+  background: #1cb0f6;
+  color: white;
+  padding: 8px 16px;
+  font-size: 0.9em;
+}
+
+.btn-secondary:hover {
+  background: #17a1e6;
+}
+
+.message {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.message.error {
+  background: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+}
+
+.message.success {
+  background: #efe;
+  color: #0a0;
+  border: 1px solid #cfc;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-top-color: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
