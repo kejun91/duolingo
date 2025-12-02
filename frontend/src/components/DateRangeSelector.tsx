@@ -44,25 +44,20 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
       case 'today':
         fromDate = new Date(today)
         break
-      case 'yesterday':
-        fromDate = new Date(today)
-        fromDate.setDate(today.getDate() - 1)
-        toDate = new Date(fromDate)
-        break
       case 'week':
         fromDate = new Date(today)
         fromDate.setDate(today.getDate() - today.getDay())
-        break
-      case 'lastWeek':
-        fromDate = new Date(today)
-        fromDate.setDate(today.getDate() - today.getDay() - 7)
-        toDate = new Date(fromDate)
-        toDate.setDate(fromDate.getDate() + 6)
         break
       case 'month':
         fromDate = new Date(today.getFullYear(), today.getMonth(), 1)
         // Reset to start of day to avoid timezone issues
         fromDate.setHours(0, 0, 0, 0)
+        break
+      case 'lastMonth':
+        fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+        toDate = new Date(today.getFullYear(), today.getMonth(), 0) // Last day of previous month
+        fromDate.setHours(0, 0, 0, 0)
+        toDate.setHours(0, 0, 0, 0)
         break
       case 'last30':
         fromDate = new Date(today)
@@ -109,10 +104,9 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
         </label>
         <div className="quick-buttons">
           <button className="quick-btn" onClick={() => setDateRange('today')} disabled={isDisabled}>Today</button>
-          <button className="quick-btn" onClick={() => setDateRange('yesterday')} disabled={isDisabled}>Yesterday</button>
           <button className="quick-btn" onClick={() => setDateRange('week')} disabled={isDisabled}>This Week</button>
-          <button className="quick-btn" onClick={() => setDateRange('lastWeek')} disabled={isDisabled}>Last Week</button>
           <button className="quick-btn" onClick={() => setDateRange('month')} disabled={isDisabled}>This Month</button>
+          <button className="quick-btn" onClick={() => setDateRange('lastMonth')} disabled={isDisabled}>Last Month</button>
           <button className="quick-btn" onClick={() => setDateRange('last30')} disabled={isDisabled}>Last 30 Days</button>
           <button className="quick-btn" onClick={() => setDateRange('last90')} disabled={isDisabled}>Last 90 Days</button>
           <button className="quick-btn" onClick={() => setDateRange('all')} disabled={isDisabled}>All Time</button>
