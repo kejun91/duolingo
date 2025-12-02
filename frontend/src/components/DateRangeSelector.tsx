@@ -15,15 +15,24 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
   const [startDate, setStartDate] = useState(filters.startDate)
   const [endDate, setEndDate] = useState(filters.endDate)
   const [streakMin, setStreakMin] = useState(filters.streakMin)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   // Auto-update when any filter changes
   useEffect(() => {
+    setIsUpdating(true)
     const timer = setTimeout(() => {
       onFiltersChange({ startDate, endDate, streakMin })
+      setIsUpdating(false)
     }, 300) // 300ms debounce to avoid too many requests while typing
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      setIsUpdating(false)
+    }
   }, [startDate, endDate, streakMin])
+
+  // Combined loading state: either API is loading or local debounce is active
+  const isDisabled = loading || isUpdating
 
   const setDateRange = (type: string) => {
     const today = new Date()
@@ -89,14 +98,14 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
           Quick Select:
         </label>
         <div className="quick-buttons">
-          <button className="quick-btn" onClick={() => setDateRange('today')} disabled={loading}>Today</button>
-          <button className="quick-btn" onClick={() => setDateRange('yesterday')} disabled={loading}>Yesterday</button>
-          <button className="quick-btn" onClick={() => setDateRange('week')} disabled={loading}>This Week</button>
-          <button className="quick-btn" onClick={() => setDateRange('lastWeek')} disabled={loading}>Last Week</button>
-          <button className="quick-btn" onClick={() => setDateRange('month')} disabled={loading}>This Month</button>
-          <button className="quick-btn" onClick={() => setDateRange('last30')} disabled={loading}>Last 30 Days</button>
-          <button className="quick-btn" onClick={() => setDateRange('last90')} disabled={loading}>Last 90 Days</button>
-          <button className="quick-btn" onClick={() => setDateRange('all')} disabled={loading}>All Time</button>
+          <button className="quick-btn" onClick={() => setDateRange('today')} disabled={isDisabled}>Today</button>
+          <button className="quick-btn" onClick={() => setDateRange('yesterday')} disabled={isDisabled}>Yesterday</button>
+          <button className="quick-btn" onClick={() => setDateRange('week')} disabled={isDisabled}>This Week</button>
+          <button className="quick-btn" onClick={() => setDateRange('lastWeek')} disabled={isDisabled}>Last Week</button>
+          <button className="quick-btn" onClick={() => setDateRange('month')} disabled={isDisabled}>This Month</button>
+          <button className="quick-btn" onClick={() => setDateRange('last30')} disabled={isDisabled}>Last 30 Days</button>
+          <button className="quick-btn" onClick={() => setDateRange('last90')} disabled={isDisabled}>Last 90 Days</button>
+          <button className="quick-btn" onClick={() => setDateRange('all')} disabled={isDisabled}>All Time</button>
         </div>
       </div>
 
@@ -107,7 +116,7 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            disabled={loading}
+            disabled={isDisabled}
           />
         </div>
 
@@ -117,13 +126,13 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            disabled={loading}
+            disabled={isDisabled}
           />
         </div>
 
         <div className="date-input-group">
           <label>Streak Filter:</label>
-          <select value={streakMin} onChange={(e) => setStreakMin(Number(e.target.value))} disabled={loading}>
+          <select value={streakMin} onChange={(e) => setStreakMin(Number(e.target.value))} disabled={isDisabled}>
             <option value="0">All streaks</option>
             <option value="7">Streak ≥ 7</option>
             <option value="30">Streak ≥ 30</option>
@@ -135,7 +144,7 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
 
       <div className="current-range">
         <strong>Current Range:</strong> {filters.startDate} to {filters.endDate}
-        {loading && (
+        {isDisabled && (
           <span style={{ marginLeft: '10px', color: '#1cb0f6' }}>
             <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
             Updating...

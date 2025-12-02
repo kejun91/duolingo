@@ -33,14 +33,37 @@ export default {
     // API: Add user
     if (path === "/api/add-user" && request.method === "POST") {
       try {
-        const body = await request.json() as { userId: string };
-        const { userId } = body;
-        if (!userId || isNaN(Number(userId))) {
-          return new Response(JSON.stringify({ error: "Invalid user ID" }), {
+        const body = await request.json() as { username: string };
+        const { username } = body;
+        if (!username || username.trim() === "") {
+          return new Response(JSON.stringify({ error: "Invalid username" }), {
             status: 400,
             headers: { "content-type": "application/json" },
           });
         }
+
+        // Fetch user data from Duolingo API using username
+        const duolingoRes = await fetch(`https://www.duolingo.com/2017-06-30/users?username=${encodeURIComponent(username)}`);
+        if (!duolingoRes.ok) {
+          return new Response(JSON.stringify({ error: `User "${username}" not found on Duolingo. Please check the username and try again.` }), {
+            status: 404,
+            headers: { "content-type": "application/json" },
+          });
+        }
+
+        const duolingoData: any = await duolingoRes.json();
+        const userData = duolingoData?.users?.[0];
+        
+        if (!userData || !userData.id) {
+          return new Response(JSON.stringify({ error: `User "${username}" not found on Duolingo. Please check the username and try again.` }), {
+            status: 404,
+            headers: { "content-type": "application/json" },
+          });
+        }
+
+        const userId = userData.id;
+        const fetchedUsername = userData.username || null;
+        const name = userData.name || fetchedUsername || null; // Fallback to username if name not available
 
         // Check if user already exists
         const existing = await env.DB.prepare("SELECT id FROM users WHERE id = ?")
@@ -54,34 +77,17 @@ export default {
           });
         }
 
-        // Insert new user with is_tracked = 1, then fetch profile to fill username/name
-        await env.DB.prepare("INSERT INTO users (id, is_tracked) VALUES (?, 1)")
-          .bind(userId)
+        // Insert new user with fetched data
+        await env.DB.prepare("INSERT INTO users (id, username, name, is_tracked) VALUES (?, ?, ?, 1)")
+          .bind(userId, fetchedUsername, name)
           .run();
 
-        // Fetch user profile from Duolingo and update username/name
-        try {
-          const res = await fetch(`https://www.duolingo.com/2017-06-30/users/${userId}`);
-          if (res.ok) {
-            const data: any = await res.json();
-            const username = data?.username ?? null;
-            const name = data?.name ?? null;
-            if (username || name) {
-              await env.DB.prepare("UPDATE users SET username = COALESCE(?, username), name = COALESCE(?, name) WHERE id = ?")
-                .bind(username, name, userId)
-                .run();
-            }
-          }
-        } catch (e) {
-          // Non-fatal: adding a user should still succeed even if Duolingo fetch fails
-          console.warn(`Failed to fetch profile for ${userId}:`, e);
-        }
-
-        return new Response(JSON.stringify({ success: true, userId }), {
+        return new Response(JSON.stringify({ success: true, userId, username: fetchedUsername, name }), {
           headers: { "content-type": "application/json" },
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: String(err) }), {
+        console.error('Error adding user:', err);
+        return new Response(JSON.stringify({ error: "Failed to add user. Please try again." }), {
           status: 500,
           headers: { "content-type": "application/json" },
         });

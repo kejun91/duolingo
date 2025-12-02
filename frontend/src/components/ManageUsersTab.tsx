@@ -9,7 +9,7 @@ interface ManageUsersTabProps {
 }
 
 export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh }: ManageUsersTabProps) {
-  const [newUserId, setNewUserId] = useState('')
+  const [newUsername, setNewUsername] = useState('')
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -20,20 +20,20 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
 
   const addUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newUserId.trim()) return
+    if (!newUsername.trim()) return
 
     setLoading(true)
     try {
       const res = await fetch('/api/add-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: newUserId.trim() })
+        body: JSON.stringify({ username: newUsername.trim() })
       })
       const data = await res.json()
       
       if (res.ok) {
-        showMessage(`✅ User ${newUserId} added successfully!`, 'success')
-        setNewUserId('')
+        showMessage(`✅ User ${data.username || newUsername} added successfully!`, 'success')
+        setNewUsername('')
         onRefresh()
       } else {
         showMessage(`❌ ${data.error}`, 'error')
@@ -99,18 +99,12 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
         <div style={{ flex: 1 }}>
           <input
             type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            placeholder="Enter Duolingo User ID (numbers only)"
-            value={newUserId}
-            onChange={(e) => {
-              // Only allow numbers
-              const value = e.target.value.replace(/\D/g, '')
-              setNewUserId(value)
-            }}
+            placeholder="Enter Duolingo Username"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
           />
           <p style={{ fontSize: '0.85em', color: '#666', margin: '5px 0 0 0' }}>
-            💡 Enter only the numeric user ID (e.g., 123456789)
+            💡 Enter the Duolingo username (e.g., john_doe123)
           </p>
         </div>
         <button type="submit" className="btn btn-primary" disabled={loading}>
