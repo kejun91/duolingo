@@ -89,14 +89,14 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
           Quick Select:
         </label>
         <div className="quick-buttons">
-          <button className="quick-btn" onClick={() => setDateRange('today')}>Today</button>
-          <button className="quick-btn" onClick={() => setDateRange('yesterday')}>Yesterday</button>
-          <button className="quick-btn" onClick={() => setDateRange('week')}>This Week</button>
-          <button className="quick-btn" onClick={() => setDateRange('lastWeek')}>Last Week</button>
-          <button className="quick-btn" onClick={() => setDateRange('month')}>This Month</button>
-          <button className="quick-btn" onClick={() => setDateRange('last30')}>Last 30 Days</button>
-          <button className="quick-btn" onClick={() => setDateRange('last90')}>Last 90 Days</button>
-          <button className="quick-btn" onClick={() => setDateRange('all')}>All Time</button>
+          <button className="quick-btn" onClick={() => setDateRange('today')} disabled={loading}>Today</button>
+          <button className="quick-btn" onClick={() => setDateRange('yesterday')} disabled={loading}>Yesterday</button>
+          <button className="quick-btn" onClick={() => setDateRange('week')} disabled={loading}>This Week</button>
+          <button className="quick-btn" onClick={() => setDateRange('lastWeek')} disabled={loading}>Last Week</button>
+          <button className="quick-btn" onClick={() => setDateRange('month')} disabled={loading}>This Month</button>
+          <button className="quick-btn" onClick={() => setDateRange('last30')} disabled={loading}>Last 30 Days</button>
+          <button className="quick-btn" onClick={() => setDateRange('last90')} disabled={loading}>Last 90 Days</button>
+          <button className="quick-btn" onClick={() => setDateRange('all')} disabled={loading}>All Time</button>
         </div>
       </div>
 
@@ -107,6 +107,7 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
+            disabled={loading}
           />
         </div>
 
@@ -116,6 +117,7 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+            disabled={loading}
           />
         </div>
 

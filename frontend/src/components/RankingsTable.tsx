@@ -63,8 +63,22 @@ export default function RankingsTable({ rankings, loading }: RankingsTableProps)
                 {getRankEmoji(index)}
               </td>
               <td>
-                <div className="username">{ranking.username}</div>
-                {ranking.name && <div style={{ fontSize: '0.85em', color: '#999' }}>{ranking.name}</div>}
+                <div className="username">
+                  {ranking.name || ranking.username || `User ${ranking.userId}`}
+                  <a 
+                    href={`https://www.duolingo.com/profile/${ranking.username || ranking.userId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="profile-link"
+                    title="View Duolingo Profile"
+                    style={{ marginLeft: '6px' }}
+                  >
+                    🔗
+                  </a>
+                </div>
+                {ranking.name && ranking.username && (
+                  <div style={{ fontSize: '0.85em', color: '#999' }}>@{ranking.username}</div>
+                )}
               </td>
               <td>{ranking.startXp.toLocaleString()}</td>
               <td>{ranking.endXp.toLocaleString()}</td>

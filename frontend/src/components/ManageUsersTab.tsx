@@ -132,7 +132,7 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
           <div key={user.id} className="user-card">
             <div className="user-info">
               <h3>
-                {user.username || `User ${user.id}`}
+                {user.name || user.username || `User ${user.id}`}
                 <a 
                   href={`https://www.duolingo.com/profile/${user.username || user.id}`}
                   target="_blank"
@@ -143,7 +143,9 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
                   🔗
                 </a>
               </h3>
-              <p>{user.name || 'No display name'}</p>
+              {user.name && user.username && (
+                <p>@{user.username}</p>
+              )}
               <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
             </div>
             <button className="btn btn-danger" onClick={() => untrackUser(user.id)}>
@@ -168,7 +170,7 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
               <div key={user.id} className="user-card" style={{ opacity: 0.7 }}>
                 <div className="user-info">
                   <h3>
-                    {user.username || `User ${user.id}`}
+                    {user.name || user.username || `User ${user.id}`}
                     <a 
                       href={`https://www.duolingo.com/profile/${user.username || user.id}`}
                       target="_blank"
@@ -179,7 +181,9 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
                       🔗
                     </a>
                   </h3>
-                  <p>{user.name || 'No display name'}</p>
+                  {user.name && user.username && (
+                    <p>@{user.username}</p>
+                  )}
                   <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
                 </div>
                 <button className="btn btn-secondary" onClick={() => retrackUser(user.id)}>
