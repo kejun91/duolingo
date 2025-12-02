@@ -96,12 +96,23 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
       )}
 
       <form onSubmit={addUser} className="user-form">
-        <input
-          type="text"
-          placeholder="Enter Duolingo User ID"
-          value={newUserId}
-          onChange={(e) => setNewUserId(e.target.value)}
-        />
+        <div style={{ flex: 1 }}>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="Enter Duolingo User ID (numbers only)"
+            value={newUserId}
+            onChange={(e) => {
+              // Only allow numbers
+              const value = e.target.value.replace(/\D/g, '')
+              setNewUserId(value)
+            }}
+          />
+          <p style={{ fontSize: '0.85em', color: '#666', margin: '5px 0 0 0' }}>
+            💡 Enter only the numeric user ID (e.g., 123456789)
+          </p>
+        </div>
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? (
             <>
@@ -120,10 +131,22 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
         {trackedUsers.map((user) => (
           <div key={user.id} className="user-card">
             <div className="user-info">
-              <h3>{user.username || `User ${user.id}`}</h3>
-              <p>{user.name || `ID: ${user.id}`}</p>
+              <h3>
+                {user.username || `User ${user.id}`}
+                <a 
+                  href={`https://www.duolingo.com/profile/${user.username || user.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="profile-link"
+                  title="View Duolingo Profile"
+                >
+                  🔗
+                </a>
+              </h3>
+              <p>{user.name || 'No display name'}</p>
+              <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
             </div>
-            <button className="btn-danger" onClick={() => untrackUser(user.id)}>
+            <button className="btn btn-danger" onClick={() => untrackUser(user.id)}>
               🗑️ Untrack
             </button>
           </div>
@@ -144,10 +167,22 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
             {untrackedUsers.map((user) => (
               <div key={user.id} className="user-card" style={{ opacity: 0.7 }}>
                 <div className="user-info">
-                  <h3>{user.username || `User ${user.id}`}</h3>
-                  <p>{user.name || `ID: ${user.id}`}</p>
+                  <h3>
+                    {user.username || `User ${user.id}`}
+                    <a 
+                      href={`https://www.duolingo.com/profile/${user.username || user.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="profile-link"
+                      title="View Duolingo Profile"
+                    >
+                      🔗
+                    </a>
+                  </h3>
+                  <p>{user.name || 'No display name'}</p>
+                  <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
                 </div>
-                <button className="btn-secondary" onClick={() => retrackUser(user.id)}>
+                <button className="btn btn-secondary" onClick={() => retrackUser(user.id)}>
                   🔄 Retrack
                 </button>
               </div>

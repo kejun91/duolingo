@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './DateRangeSelector.css'
 
 interface DateRangeSelectorProps {
@@ -8,22 +8,26 @@ interface DateRangeSelectorProps {
     streakMin: number
   }
   onFiltersChange: (filters: { startDate: string; endDate: string; streakMin: number }) => void
+  loading?: boolean
 }
 
-export default function DateRangeSelector({ filters, onFiltersChange }: DateRangeSelectorProps) {
+export default function DateRangeSelector({ filters, onFiltersChange, loading = false }: DateRangeSelectorProps) {
   const [startDate, setStartDate] = useState(filters.startDate)
   const [endDate, setEndDate] = useState(filters.endDate)
   const [streakMin, setStreakMin] = useState(filters.streakMin)
-  const [loading, setLoading] = useState(false)
 
-  const handleUpdate = async () => {
-    setLoading(true)
-    await onFiltersChange({ startDate, endDate, streakMin })
-    setLoading(false)
-  }
+  // Auto-update when any filter changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onFiltersChange({ startDate, endDate, streakMin })
+    }, 300) // 300ms debounce to avoid too many requests while typing
+
+    return () => clearTimeout(timer)
+  }, [startDate, endDate, streakMin])
 
   const setDateRange = (type: string) => {
     const today = new Date()
+    const hardLimit = new Date('2025-12-01')
     let fromDate: Date
     let toDate = today
 
@@ -58,10 +62,15 @@ export default function DateRangeSelector({ filters, onFiltersChange }: DateRang
         fromDate.setDate(today.getDate() - 90)
         break
       case 'all':
-        fromDate = new Date('2024-01-01')
+        fromDate = new Date('2025-12-01')
         break
       default:
         fromDate = new Date(today.getFullYear(), today.getMonth(), 1)
+    }
+
+    // Apply hard limit: don't allow dates before 2025-12-01
+    if (fromDate < hardLimit) {
+      fromDate = hardLimit
     }
 
     const fromStr = fromDate.toISOString().split('T')[0]
@@ -112,7 +121,7 @@ export default function DateRangeSelector({ filters, onFiltersChange }: DateRang
 
         <div className="date-input-group">
           <label>Streak Filter:</label>
-          <select value={streakMin} onChange={(e) => setStreakMin(Number(e.target.value))}>
+          <select value={streakMin} onChange={(e) => setStreakMin(Number(e.target.value))} disabled={loading}>
             <option value="0">All streaks</option>
             <option value="7">Streak ≥ 7</option>
             <option value="30">Streak ≥ 30</option>
@@ -120,27 +129,16 @@ export default function DateRangeSelector({ filters, onFiltersChange }: DateRang
             <option value="100">Streak ≥ 100</option>
           </select>
         </div>
-
-        <div className="date-input-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-          <button
-            className="btn btn-primary"
-            onClick={handleUpdate}
-            disabled={loading}
-            style={{ width: '100%', padding: '10px 20px' }}
-          >
-            {loading ? (
-              <>
-                <span className="spinner"></span>Loading
-              </>
-            ) : (
-              '🔍 Update Rankings'
-            )}
-          </button>
-        </div>
       </div>
 
       <div className="current-range">
         <strong>Current Range:</strong> {filters.startDate} to {filters.endDate}
+        {loading && (
+          <span style={{ marginLeft: '10px', color: '#1cb0f6' }}>
+            <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
+            Updating...
+          </span>
+        )}
       </div>
     </div>
   )

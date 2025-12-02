@@ -3,15 +3,21 @@
   gap: 10px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.user-form > div {
+  flex: 1;
+  min-width: 250px;
 }
 
 .user-form input {
-  flex: 1;
-  min-width: 200px;
+  width: 100%;
   padding: 12px 16px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1em;
+  box-sizing: border-box;
 }
 
 .user-form input:focus {
@@ -33,14 +39,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 15px;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .user-info h3 {
   color: #333;
-  margin-bottom: 5px;
+  margin: 0 0 5px 0;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-link {
+  font-size: 0.85em;
+  text-decoration: none;
+  opacity: 0.6;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profile-link:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .user-info p {
   color: #666;
   font-size: 0.9em;
+  margin: 0;
 }

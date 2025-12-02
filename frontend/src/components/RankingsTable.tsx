@@ -76,7 +76,7 @@ export default function RankingsTable({ rankings, loading }: RankingsTableProps)
               <td>{ranking.dailyAverage.toLocaleString()} XP/day</td>
               <td>🔥 {ranking.streak}</td>
               <td>
-                <button className="btn-secondary" onClick={() => viewHistory(ranking.userId)}>
+                <button className="btn btn-secondary" onClick={() => viewHistory(ranking.userId)}>
                   📊 History
                 </button>
               </td>

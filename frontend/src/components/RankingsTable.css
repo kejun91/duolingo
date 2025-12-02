@@ -69,3 +69,36 @@
   background: #e5e5e5;
   color: #666;
 }
+
+.ranking-table .btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.ranking-table .btn-secondary {
+  background: #1cb0f6;
+  color: white;
+}
+
+.ranking-table .btn-secondary:hover {
+  background: #17a1e6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(28, 176, 246, 0.3);
+}
+
+.ranking-table .btn-danger {
+  background: #ea2b2b;
+  color: white;
+}
+
+.ranking-table .btn-danger:hover {
+  background: #d12020;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(234, 43, 43, 0.3);
+}
