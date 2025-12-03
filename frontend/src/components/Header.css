@@ -15,4 +15,12 @@
 .header .subtitle {
   color: #666;
   font-size: 1.1em;
+  margin-bottom: 8px;
+}
+
+.header .last-collection {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin: 0;
 }

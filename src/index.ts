@@ -164,6 +164,20 @@ export default {
       });
     }
 
+    // API: Get last collection time
+    if (path === "/api/last-collection-time" && request.method === "GET") {
+      const result = await env.DB.prepare(`
+        SELECT MAX(snapshot_timestamp) as last_timestamp
+        FROM user_daily_snapshots
+      `).first();
+
+      return new Response(JSON.stringify({ 
+        lastCollectionTime: result?.last_timestamp || null 
+      }), {
+        headers: { "content-type": "application/json" },
+      });
+    }
+
     // API: Get user history
     if (path === "/api/user-history" && request.method === "GET") {
       const userId = url.searchParams.get("userId");
