@@ -24,9 +24,8 @@ export interface User {
 }
 
 function App() {
-  // Check if we're on the user history route
-  const isHistoryRoute = window.location.pathname === '/history' || window.location.search.includes('userId=')
-  
+  const [currentView, setCurrentView] = useState<'main' | 'history'>('main')
+  const [historyUserId, setHistoryUserId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'rankings' | 'users'>('rankings')
   const [rankings, setRankings] = useState<Ranking[]>([])
   const [trackedUsers, setTrackedUsers] = useState<User[]>([])
@@ -44,9 +43,37 @@ function App() {
 
   const [filters, setFilters] = useState(getInitialDates())
 
+  // Check URL on mount to see if we should show history
   useEffect(() => {
-    loadData()
+    const params = new URLSearchParams(window.location.search)
+    const userId = params.get('userId')
+    if (userId) {
+      setHistoryUserId(userId)
+      setCurrentView('history')
+    }
+
+    // Handle browser back/forward buttons
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search)
+      const userId = params.get('userId')
+      if (userId) {
+        setHistoryUserId(userId)
+        setCurrentView('history')
+      } else {
+        setCurrentView('main')
+        setHistoryUserId(null)
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useEffect(() => {
+    if (currentView === 'main') {
+      loadData()
+    }
+  }, [currentView])
 
   const loadData = async () => {
     try {
@@ -121,12 +148,24 @@ function App() {
     }
   }
 
+  const showUserHistory = (userId: number) => {
+    setHistoryUserId(String(userId))
+    setCurrentView('history')
+    window.history.pushState(null, '', `?userId=${userId}`)
+  }
+
+  const showMainView = () => {
+    setCurrentView('main')
+    setHistoryUserId(null)
+    window.history.pushState(null, '', '/')
+  }
+
   // Show user history if on history route
-  if (isHistoryRoute) {
+  if (currentView === 'history' && historyUserId) {
     return (
       <>
         <Header />
-        <UserHistory />
+        <UserHistory userId={historyUserId} onBack={showMainView} />
       </>
     )
   }
@@ -142,12 +181,14 @@ function App() {
           filters={filters}
           onFiltersChange={updateFilters}
           loading={loading}
+          onShowHistory={showUserHistory}
         />
       ) : (
         <ManageUsersTab
           trackedUsers={trackedUsers}
           untrackedUsers={untrackedUsers}
           onRefresh={refreshUsers}
+          onShowHistory={showUserHistory}
         />
       )}
     </>

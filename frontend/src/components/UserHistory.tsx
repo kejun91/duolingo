@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from './useSearchParams'
 import './UserHistory.css'
 
 interface Snapshot {
@@ -13,9 +12,12 @@ interface Snapshot {
   }
 }
 
-export default function UserHistory() {
-  const params = useSearchParams()
-  const userId = params.get('userId')
+interface UserHistoryProps {
+  userId: string
+  onBack: () => void
+}
+
+export default function UserHistory({ userId, onBack }: UserHistoryProps) {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,7 +76,7 @@ export default function UserHistory() {
       <div className="user-history">
         <div className="card">
           <div className="message error">{error}</div>
-          <button className="btn btn-primary" onClick={() => window.history.back()}>
+          <button className="btn btn-primary" onClick={onBack}>
             ← Go Back
           </button>
         </div>
@@ -91,10 +93,10 @@ export default function UserHistory() {
       <div className="card">
         <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h2 style={{ color: '#333', marginBottom: '5px' }}>📊 {username}'s History</h2>
-            {name && <p style={{ color: '#666', fontSize: '0.9em' }}>{name}</p>}
+            <h2 style={{ color: '#333', marginBottom: '5px' }}>📊 {name || username}'s History</h2>
+            {name && username && <p style={{ color: '#666', fontSize: '0.9em' }}>@{username}</p>}
           </div>
-          <button className="btn btn-secondary" onClick={() => window.history.back()}>
+          <button className="btn btn-secondary" onClick={onBack}>
             ← Back
           </button>
         </div>

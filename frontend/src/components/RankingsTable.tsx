@@ -4,9 +4,10 @@ import './RankingsTable.css'
 interface RankingsTableProps {
   rankings: Ranking[]
   loading: boolean
+  onShowHistory: (userId: number) => void
 }
 
-export default function RankingsTable({ rankings, loading }: RankingsTableProps) {
+export default function RankingsTable({ rankings, loading, onShowHistory }: RankingsTableProps) {
   const getRankEmoji = (index: number) => {
     if (index === 0) return '🥇'
     if (index === 1) return '🥈'
@@ -18,10 +19,6 @@ export default function RankingsTable({ rankings, loading }: RankingsTableProps)
     if (increase > 0) return 'xp-positive'
     if (increase < 0) return 'xp-negative'
     return 'xp-neutral'
-  }
-
-  const viewHistory = (userId: number) => {
-    window.location.href = `/?userId=${userId}`
   }
 
   if (loading) {
@@ -90,7 +87,7 @@ export default function RankingsTable({ rankings, loading }: RankingsTableProps)
               <td>{ranking.dailyAverage.toLocaleString()} XP/day</td>
               <td>🔥 {ranking.streak}</td>
               <td>
-                <button className="btn btn-secondary" onClick={() => viewHistory(ranking.userId)}>
+                <button className="btn btn-secondary" onClick={() => onShowHistory(ranking.userId)}>
                   📊 History
                 </button>
               </td>

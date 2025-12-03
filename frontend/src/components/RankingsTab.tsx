@@ -12,9 +12,10 @@ interface RankingsTabProps {
   }
   onFiltersChange: (filters: { startDate: string; endDate: string; streakMin: number }) => void
   loading: boolean
+  onShowHistory: (userId: number) => void
 }
 
-export default function RankingsTab({ rankings, filters, onFiltersChange, loading }: RankingsTabProps) {
+export default function RankingsTab({ rankings, filters, onFiltersChange, loading, onShowHistory }: RankingsTabProps) {
   const totalXpGained = rankings.reduce((sum, r) => sum + r.increase, 0)
   const avgXpGained = rankings.length > 0 ? Math.round(totalXpGained / rankings.length) : 0
 
@@ -85,7 +86,7 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
         avgXp={avgXpGained}
       />
 
-      <RankingsTable rankings={rankings} loading={loading} />
+      <RankingsTable rankings={rankings} loading={loading} onShowHistory={onShowHistory} />
     </div>
   )
 }

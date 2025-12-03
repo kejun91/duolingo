@@ -6,9 +6,10 @@ interface ManageUsersTabProps {
   trackedUsers: User[]
   untrackedUsers: User[]
   onRefresh: () => void
+  onShowHistory: (userId: number) => void
 }
 
-export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh }: ManageUsersTabProps) {
+export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh, onShowHistory }: ManageUsersTabProps) {
   const [newUsername, setNewUsername] = useState('')
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -142,9 +143,14 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
               )}
               <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
             </div>
-            <button className="btn btn-danger" onClick={() => untrackUser(user.id)}>
-              🗑️ Untrack
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn btn-secondary" onClick={() => onShowHistory(user.id)}>
+                📊 History
+              </button>
+              <button className="btn btn-danger" onClick={() => untrackUser(user.id)}>
+                Untrack
+              </button>
+            </div>
           </div>
         ))}
         {trackedUsers.length === 0 && (

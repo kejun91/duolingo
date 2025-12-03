@@ -18,7 +18,7 @@ export default function Header() {
   const formatTimestamp = (timestamp: number | null) => {
     if (!timestamp) return 'Never'
     const date = new Date(timestamp * 1000) // Convert seconds to milliseconds
-    return date.toUTCString()
+    return date.toLocaleString()
   }
 
   return (
@@ -28,7 +28,7 @@ export default function Header() {
       </h1>
       <p className="subtitle">Track XP progress and rankings over time</p>
       <p className="last-collection">
-        Last updated: {formatTimestamp(lastCollectionTime)} (UTC)
+        Last updated: {formatTimestamp(lastCollectionTime)}
       </p>
     </header>
   )
