@@ -188,7 +188,6 @@ function App() {
           trackedUsers={trackedUsers}
           untrackedUsers={untrackedUsers}
           onRefresh={refreshUsers}
-          onShowHistory={showUserHistory}
         />
       )}
     </>
