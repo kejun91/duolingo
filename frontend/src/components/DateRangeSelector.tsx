@@ -97,6 +97,9 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
   return (
     <div className="date-selector-box">
       <h3>📅 Select Date Range</h3>
+      <p style={{ fontSize: '0.85em', color: '#999', marginTop: '-8px', marginBottom: '12px', fontStyle: 'italic' }}>
+        All dates are in UTC timezone
+      </p>
 
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#666' }}>
