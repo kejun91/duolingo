@@ -321,38 +321,88 @@ async function calculateRankings(db: D1Database, startDate: string, endDate: str
     return [s.user_id, userInfo];
   }));
 
-  // Calculate increases for all users that have data in both snapshots
+  // Calculate increases for all users that have data in end snapshot
   const rankings: any[] = [];
   const allUserIds = new Set([...startMap.keys(), ...endMap.keys()]);
 
   for (const userId of allUserIds) {
-    const start = startMap.get(userId);
+    let start = startMap.get(userId);
     const end = endMap.get(userId);
 
-    if (start && end) {
-      const startXp = start.totalXp ?? 0;
-      const endXp = end.totalXp ?? 0;
-      const increase = endXp - startXp;
-      const daysDiff = Math.max(1, getDaysDifference(startDate, endDate));
-      const dailyAverage = Math.round(increase / daysDiff);
-
-  // Optional streak filter (Duolingo uses `streak`)
-  const endStreak = (end.streak ?? 0) as number;
-      if (streakMin && endStreak < streakMin) {
-        continue;
-      }
-
-      rankings.push({
-        userId,
-        username: end.username ?? start.username ?? `User ${userId}`,
-        name: end.name ?? start.name ?? "",
-        startXp,
-        endXp,
-        increase,
-        dailyAverage,
-        streak: endStreak,
-      });
+    // Skip if no end date value
+    if (!end) {
+      continue;
     }
+
+    // If no start date value, find the earliest date with value between startDate and endDate
+    if (!start) {
+      const { results: earliestSnapshots } = await db.prepare(`
+        SELECT userInfo, snapshot_date
+        FROM user_daily_snapshots
+        WHERE user_id = ? AND snapshot_date >= ? AND snapshot_date <= ?
+        ORDER BY snapshot_date ASC
+        LIMIT 1
+      `).bind(userId, startDate, endDate).all();
+
+      if (earliestSnapshots && earliestSnapshots.length > 0) {
+        const earliest: any = earliestSnapshots[0];
+        start = earliest.userInfo ? JSON.parse(earliest.userInfo) : {};
+        // Update startDate for this user to calculate correct daysDiff
+        const actualStartDate = earliest.snapshot_date;
+        const startXp = start.totalXp ?? 0;
+        const endXp = end.totalXp ?? 0;
+        const increase = endXp - startXp;
+        const daysDiff = Math.max(1, getDaysDifference(actualStartDate, endDate));
+        const dailyAverage = Math.round(increase / daysDiff);
+
+        // Optional streak filter (Duolingo uses `streak`)
+        const endStreak = (end.streak ?? 0) as number;
+        if (streakMin && endStreak < streakMin) {
+          continue;
+        }
+
+        rankings.push({
+          userId,
+          username: end.username ?? start.username ?? `User ${userId}`,
+          name: end.name ?? start.name ?? "",
+          startXp,
+          endXp,
+          increase,
+          dailyAverage,
+          streak: endStreak,
+          actualStartDate,  // Include the actual start date used
+          usedEarlierDate: true,  // Flag to indicate we used an earlier date
+        });
+      }
+      // If no data found between startDate and endDate, skip this user
+      continue;
+    }
+
+    // Normal case: both start and end exist
+    const startXp = start.totalXp ?? 0;
+    const endXp = end.totalXp ?? 0;
+    const increase = endXp - startXp;
+    const daysDiff = Math.max(1, getDaysDifference(startDate, endDate));
+    const dailyAverage = Math.round(increase / daysDiff);
+
+    // Optional streak filter (Duolingo uses `streak`)
+    const endStreak = (end.streak ?? 0) as number;
+    if (streakMin && endStreak < streakMin) {
+      continue;
+    }
+
+    rankings.push({
+      userId,
+      username: end.username ?? start.username ?? `User ${userId}`,
+      name: end.name ?? start.name ?? "",
+      startXp,
+      endXp,
+      increase,
+      dailyAverage,
+      streak: endStreak,
+      actualStartDate: startDate,  // Use the requested start date
+      usedEarlierDate: false,  // Flag to indicate we used the requested date
+    });
   }
 
   // Sort by increase (descending)

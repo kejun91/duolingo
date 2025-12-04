@@ -34,8 +34,9 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
   // Combined loading state: either API is loading or local debounce is active
   const isDisabled = loading || isUpdating
 
-  const setDateRange = (type: string) => {
-    const today = new Date()
+  const applyQuickFilter = (type: string) => {
+    const now = new Date()
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
     const hardLimit = new Date('2025-12-01')
     let fromDate: Date
     let toDate = today
@@ -46,32 +47,28 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
         break
       case 'week':
         fromDate = new Date(today)
-        fromDate.setDate(today.getDate() - today.getDay())
+        fromDate.setUTCDate(today.getUTCDate() - today.getUTCDay())
         break
       case 'month':
-        fromDate = new Date(today.getFullYear(), today.getMonth(), 1)
-        // Reset to start of day to avoid timezone issues
-        fromDate.setHours(0, 0, 0, 0)
+        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
         break
       case 'lastMonth':
-        fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-        toDate = new Date(today.getFullYear(), today.getMonth(), 0) // Last day of previous month
-        fromDate.setHours(0, 0, 0, 0)
-        toDate.setHours(0, 0, 0, 0)
+        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1))
+        toDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0)) // Last day of previous month
         break
       case 'last30':
         fromDate = new Date(today)
-        fromDate.setDate(today.getDate() - 30)
+        fromDate.setUTCDate(today.getUTCDate() - 30)
         break
       case 'last90':
         fromDate = new Date(today)
-        fromDate.setDate(today.getDate() - 90)
+        fromDate.setUTCDate(today.getUTCDate() - 90)
         break
       case 'all':
         fromDate = new Date('2025-12-01')
         break
       default:
-        fromDate = new Date(today.getFullYear(), today.getMonth(), 1)
+        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
     }
 
     // Apply hard limit: don't allow dates before 2025-12-01
@@ -79,16 +76,16 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
       fromDate = hardLimit
     }
 
-    // Format dates in local timezone (YYYY-MM-DD)
-    const formatLocalDate = (date: Date) => {
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
+    // Format dates in UTC timezone (YYYY-MM-DD)
+    const formatUTCDate = (date: Date) => {
+      const year = date.getUTCFullYear()
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+      const day = String(date.getUTCDate()).padStart(2, '0')
       return `${year}-${month}-${day}`
     }
 
-    const fromStr = formatLocalDate(fromDate)
-    const toStr = formatLocalDate(toDate)
+    const fromStr = formatUTCDate(fromDate)
+    const toStr = formatUTCDate(toDate)
     
     setStartDate(fromStr)
     setEndDate(toStr)
@@ -106,13 +103,13 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
           Quick Select:
         </label>
         <div className="quick-buttons">
-          <button className="quick-btn" onClick={() => setDateRange('today')} disabled={isDisabled}>Today</button>
-          <button className="quick-btn" onClick={() => setDateRange('week')} disabled={isDisabled}>This Week</button>
-          <button className="quick-btn" onClick={() => setDateRange('month')} disabled={isDisabled}>This Month</button>
-          <button className="quick-btn" onClick={() => setDateRange('lastMonth')} disabled={isDisabled}>Last Month</button>
-          <button className="quick-btn" onClick={() => setDateRange('last30')} disabled={isDisabled}>Last 30 Days</button>
-          <button className="quick-btn" onClick={() => setDateRange('last90')} disabled={isDisabled}>Last 90 Days</button>
-          <button className="quick-btn" onClick={() => setDateRange('all')} disabled={isDisabled}>All Time</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('today')} disabled={isDisabled}>Today</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('week')} disabled={isDisabled}>This Week</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('month')} disabled={isDisabled}>This Month</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('lastMonth')} disabled={isDisabled}>Last Month</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('last30')} disabled={isDisabled}>Last 30 Days</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('last90')} disabled={isDisabled}>Last 90 Days</button>
+          <button className="quick-btn" onClick={() => applyQuickFilter('all')} disabled={isDisabled}>All Time</button>
         </div>
       </div>
 

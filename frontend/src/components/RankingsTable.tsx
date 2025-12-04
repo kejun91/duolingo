@@ -72,6 +72,18 @@ export default function RankingsTable({ rankings, loading, onShowHistory }: Rank
                   >
                     🔗
                   </a>
+                  {ranking.usedEarlierDate && (
+                    <span 
+                      style={{ 
+                        marginLeft: '6px', 
+                        fontSize: '0.9em',
+                        cursor: 'help'
+                      }}
+                      title={`No data on requested start date. Using earliest available date: ${ranking.actualStartDate}`}
+                    >
+                      ℹ️
+                    </span>
+                  )}
                 </div>
                 {ranking.name && ranking.username && (
                   <div style={{ fontSize: '0.85em', color: '#999' }}>@{ranking.username}</div>
