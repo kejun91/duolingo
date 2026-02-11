@@ -1,3 +1,4 @@
+import { ReactNode } from 'react'
 import Table from '@cloudscape-design/components/table'
 import Box from '@cloudscape-design/components/box'
 import SpaceBetween from '@cloudscape-design/components/space-between'
@@ -6,15 +7,17 @@ import Link from '@cloudscape-design/components/link'
 import Badge from '@cloudscape-design/components/badge'
 import StatusIndicator from '@cloudscape-design/components/status-indicator'
 import Popover from '@cloudscape-design/components/popover'
+import Header from '@cloudscape-design/components/header'
 import { Ranking } from '../App'
 
 interface RankingsTableProps {
   rankings: Ranking[]
   loading: boolean
   onShowHistory: (userId: number) => void
+  headerActions?: ReactNode
 }
 
-export default function RankingsTable({ rankings, loading, onShowHistory }: RankingsTableProps) {
+export default function RankingsTable({ rankings, loading, onShowHistory, headerActions }: RankingsTableProps) {
   const getRankDisplay = (index: number) => {
     if (index === 0) return '🥇'
     if (index === 1) return '🥈'
@@ -24,6 +27,15 @@ export default function RankingsTable({ rankings, loading, onShowHistory }: Rank
 
   return (
     <Table
+      header={
+        <Header
+          variant="h2"
+          counter={`(${rankings.length})`}
+          actions={headerActions}
+        >
+          Leaderboard
+        </Header>
+      }
       loading={loading}
       loadingText="Loading rankings..."
       items={rankings}
@@ -120,12 +132,12 @@ export default function RankingsTable({ rankings, loading, onShowHistory }: Rank
           header: 'Actions',
           cell: (item) => (
             <Button variant="inline-link" onClick={() => onShowHistory(item.userId)}>
-              📊 History
+              History
             </Button>
           ),
         },
       ]}
-      variant="full-page"
+      variant="container"
       stickyHeader
       stripedRows
     />

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import AppLayout from '@cloudscape-design/components/app-layout'
 import ContentLayout from '@cloudscape-design/components/content-layout'
-import Header from './components/Header'
-import TabNavigation from './components/TabNavigation'
+import CloudscapeHeader from '@cloudscape-design/components/header'
+import Tabs from '@cloudscape-design/components/tabs'
+import TopNav from './components/Header'
 import RankingsTab from './components/RankingsTab'
 import ManageUsersTab from './components/ManageUsersTab'
 import UserHistory from './components/UserHistory'
@@ -166,46 +167,72 @@ function App() {
   // Show user history if on history route
   if (currentView === 'history' && historyUserId) {
     return (
-      <AppLayout
-        navigationHide
-        toolsHide
-        headerSelector="#header"
-        content={
-          <ContentLayout header={<Header />}>
+      <>
+        <TopNav />
+        <AppLayout
+          navigationHide
+          toolsHide
+          headerSelector="#top-nav"
+          content={
             <UserHistory userId={historyUserId} onBack={showMainView} />
-          </ContentLayout>
-        }
-      />
+          }
+        />
+      </>
     )
   }
 
   return (
-    <AppLayout
-      navigationHide
-      toolsHide
-      headerSelector="#header"
-      content={
-        <ContentLayout header={<Header />}>
-          <TabNavigation activeTab={activeTab} onTabChange={setActiveTab}>
-            {activeTab === 'rankings' ? (
-              <RankingsTab
-                rankings={rankings}
-                filters={filters}
-                onFiltersChange={updateFilters}
-                loading={loading}
-                onShowHistory={showUserHistory}
-              />
-            ) : (
-              <ManageUsersTab
-                trackedUsers={trackedUsers}
-                untrackedUsers={untrackedUsers}
-                onRefresh={refreshUsers}
-              />
-            )}
-          </TabNavigation>
-        </ContentLayout>
-      }
-    />
+    <>
+      <TopNav />
+      <AppLayout
+        navigationHide
+        toolsHide
+        headerSelector="#top-nav"
+        content={
+          <ContentLayout
+            header={
+              <CloudscapeHeader
+                variant="h1"
+                description="Track XP progress and rankings over time"
+              >
+                Duolingo Progress Tracker
+              </CloudscapeHeader>
+            }
+          >
+            <Tabs
+              activeTabId={activeTab}
+              onChange={({ detail }) => setActiveTab(detail.activeTabId as 'rankings' | 'users')}
+              tabs={[
+                {
+                  id: 'rankings',
+                  label: 'Rankings',
+                  content: (
+                    <RankingsTab
+                      rankings={rankings}
+                      filters={filters}
+                      onFiltersChange={updateFilters}
+                      loading={loading}
+                      onShowHistory={showUserHistory}
+                    />
+                  ),
+                },
+                {
+                  id: 'users',
+                  label: 'Manage Users',
+                  content: (
+                    <ManageUsersTab
+                      trackedUsers={trackedUsers}
+                      untrackedUsers={untrackedUsers}
+                      onRefresh={refreshUsers}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </ContentLayout>
+        }
+      />
+    </>
   )
 }
 

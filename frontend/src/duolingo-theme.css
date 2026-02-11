@@ -1,0 +1,110 @@
+/*
+ * Duolingo Theme for Cloudscape Design System
+ *
+ * This file overrides Cloudscape CSS design tokens to apply Duolingo brand colors.
+ * Only uses official CSS custom properties — no class selector hacks.
+ *
+ * Brand Colors:
+ *   Feather Green:  #58CC02 (primary)
+ *   Macaw Blue:     #1CB0F6 (accent/links)
+ *   Cardinal Red:   #FF4B4B (error/danger)
+ *   Fox Orange:     #FF9600 (warning)
+ *   Lily Purple:    #CE82FF (secondary)
+ *   Owl Dark:       #131F24 (dark bg)
+ *   Eel Gray:       #4B4B4B (text)
+ */
+
+/* ========================================
+   Light Mode — Duolingo Green Theme
+   ======================================== */
+:root {
+  /* Primary button → Duolingo Green */
+  --color-background-button-primary-default-vdt0fu: #58CC02;
+  --color-background-button-primary-hover-mo85i6: #4CAD02;
+  --color-background-button-primary-active-5cqoqt: #3F8F02;
+
+  /* Accent / Links → Duolingo Blue */
+  --color-text-accent-n1kmht: #1CB0F6;
+  --color-text-link-default-hude44: #1CB0F6;
+  --color-text-link-hover-2hfec2: #1899D6;
+
+  /* Control checked (toggle, checkbox) → Green */
+  --color-background-control-checked-ka7kc2: #58CC02;
+
+  /* Segment (tab active) → Green */
+  --color-background-segment-active-1u2ldl: #58CC02;
+
+  /* Notification badges */
+  --color-background-notification-blue-4vnob8: #1CB0F6;
+  --color-background-notification-green-2rkyvu: #58CC02;
+  --color-background-notification-red-0487ea: #FF4B4B;
+
+  /* Status backgrounds */
+  --color-background-status-success-h6b8bh: #f0fff0;
+  --color-background-status-error-mu3lcw: #fff5f5;
+  --color-background-status-info-sfobba: #f0f9ff;
+
+  /* Status borders */
+  --color-border-status-success-8z5f8u: #58CC02;
+  --color-border-status-error-j8acpp: #FF4B4B;
+  --color-border-status-info-qf6jok: #1CB0F6;
+
+  /* Focus ring → Blue */
+  --color-border-item-focused-ap3b6s: #1CB0F6;
+
+  /* Top Navigation → Duolingo Green */
+  --color-background-home-header-4c9jt4: #58CC02;
+}
+
+/* ========================================
+   Dark Mode — Duolingo Owl Dark Theme
+   ======================================== */
+.awsui-dark-mode {
+  /* Duolingo's own dark background */
+  --color-background-layout-main-5ilwcb: #131F24;
+  --color-background-container-content-nrzhf5: #1a2a32;
+  --color-background-container-header-xkqn3c: #1a2a32;
+
+  /* Primary button stays green in dark mode */
+  --color-background-button-primary-default-vdt0fu: #58CC02;
+  --color-background-button-primary-hover-mo85i6: #6EE018;
+  --color-background-button-primary-active-5cqoqt: #4CAD02;
+
+  /* Links/accent → lighter blue for dark backgrounds */
+  --color-text-accent-n1kmht: #49C0F8;
+  --color-text-link-default-hude44: #49C0F8;
+  --color-text-link-hover-2hfec2: #7DD3FC;
+
+  /* Control checked → Green */
+  --color-background-control-checked-ka7kc2: #58CC02;
+
+  /* Segment active → Green */
+  --color-background-segment-active-1u2ldl: #58CC02;
+
+  /* Notifications */
+  --color-background-notification-blue-4vnob8: #1CB0F6;
+  --color-background-notification-green-2rkyvu: #58CC02;
+  --color-background-notification-red-0487ea: #FF4B4B;
+
+  /* Status borders */
+  --color-border-status-success-8z5f8u: #58CC02;
+  --color-border-status-error-j8acpp: #FF4B4B;
+  --color-border-status-info-qf6jok: #1CB0F6;
+
+  /* Top Navigation → Deep green for dark mode */
+  --color-background-home-header-4c9jt4: #2B5F0A;
+}
+
+/* ========================================
+   General styling polish
+   ======================================== */
+
+/* Smooth transitions for dark mode toggle */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure the app layout fills the viewport */
+#root {
+  min-height: 100vh;
+}

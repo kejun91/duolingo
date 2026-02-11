@@ -14,13 +14,13 @@ const ThemeContext = createContext<ThemeContextType>({
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
-    return saved === 'true'
+    if (saved !== null) return saved === 'true'
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
   })
 
   useEffect(() => {
     applyMode(darkMode ? Mode.Dark : Mode.Light)
     localStorage.setItem('darkMode', String(darkMode))
-    document.body.classList.toggle('awsui-dark-mode', darkMode)
   }, [darkMode])
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev)

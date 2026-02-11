@@ -3,9 +3,7 @@ import DateRangeSelector from './DateRangeSelector'
 import StatsGrid from './StatsGrid'
 import RankingsTable from './RankingsTable'
 import SpaceBetween from '@cloudscape-design/components/space-between'
-import Header from '@cloudscape-design/components/header'
 import Button from '@cloudscape-design/components/button'
-import Container from '@cloudscape-design/components/container'
 
 interface RankingsTabProps {
   rankings: Ranking[]
@@ -73,26 +71,20 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
         avgXp={avgXpGained}
       />
 
-      <Container
-        header={
-          <Header
-            variant="h2"
-            actions={
-              <Button
-                iconName="download"
-                onClick={exportToCSV}
-                disabled={loading || rankings.length === 0}
-              >
-                Export to CSV
-              </Button>
-            }
+      <RankingsTable
+        rankings={rankings}
+        loading={loading}
+        onShowHistory={onShowHistory}
+        headerActions={
+          <Button
+            iconName="download"
+            onClick={exportToCSV}
+            disabled={loading || rankings.length === 0}
           >
-            🏆 Leaderboard
-          </Header>
+            Export CSV
+          </Button>
         }
-      >
-        <RankingsTable rankings={rankings} loading={loading} onShowHistory={onShowHistory} />
-      </Container>
+      />
     </SpaceBetween>
   )
 }

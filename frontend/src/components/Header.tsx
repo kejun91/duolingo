@@ -20,23 +20,39 @@ export default function Header() {
   }
 
   return (
-    <div id="header">
+    <div id="top-nav">
       <TopNavigation
         identity={{
           href: '/',
-          title: '🦉 Duolingo Progress Tracker',
+          title: 'Duolingo Progress Tracker',
+        }}
+        i18nStrings={{
+          overflowMenuTriggerText: 'More',
+          overflowMenuTitleText: 'All',
+          overflowMenuBackIconAriaLabel: 'Back',
+          overflowMenuDismissIconAriaLabel: 'Close menu',
         }}
         utilities={[
           {
             type: 'button',
-            text: `Last updated: ${formatTimestamp(lastCollectionTime)}`,
-            ariaLabel: `Last updated: ${formatTimestamp(lastCollectionTime)}`,
+            text: `Updated: ${formatTimestamp(lastCollectionTime)}`,
+            ariaLabel: `Last data collection: ${formatTimestamp(lastCollectionTime)}`,
+            disableUtilityCollapse: false,
           },
           {
-            type: 'button',
-            iconName: darkMode ? 'thumbs-up' : 'thumbs-down',
-            text: darkMode ? 'Light Mode' : 'Dark Mode',
-            onClick: toggleDarkMode,
+            type: 'menu-dropdown',
+            iconName: 'settings',
+            ariaLabel: 'Settings',
+            title: 'Settings',
+            items: [
+              {
+                id: 'theme',
+                text: darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+              },
+            ],
+            onItemClick: ({ detail }) => {
+              if (detail.id === 'theme') toggleDarkMode()
+            },
           },
           {
             type: 'button',
