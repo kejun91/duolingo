@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { User } from '../App'
-import './ManageUsersTab.css'
+import Container from '@cloudscape-design/components/container'
+import Header from '@cloudscape-design/components/header'
+import SpaceBetween from '@cloudscape-design/components/space-between'
+import Button from '@cloudscape-design/components/button'
+import Input from '@cloudscape-design/components/input'
+import FormField from '@cloudscape-design/components/form-field'
+import Box from '@cloudscape-design/components/box'
+import Cards from '@cloudscape-design/components/cards'
+import Link from '@cloudscape-design/components/link'
+import Flashbar, { FlashbarProps } from '@cloudscape-design/components/flashbar'
+import Form from '@cloudscape-design/components/form'
 
 interface ManageUsersTabProps {
   trackedUsers: User[]
@@ -10,12 +20,18 @@ interface ManageUsersTabProps {
 
 export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh }: ManageUsersTabProps) {
   const [newUsername, setNewUsername] = useState('')
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [flashItems, setFlashItems] = useState<FlashbarProps.MessageDefinition[]>([])
   const [loading, setLoading] = useState(false)
 
-  const showMessage = (text: string, type: 'success' | 'error') => {
-    setMessage({ text, type })
-    setTimeout(() => setMessage(null), 5000)
+  const showMessage = (content: string, type: FlashbarProps.Type) => {
+    const id = String(Date.now())
+    setFlashItems(prev => [...prev, {
+      id,
+      type,
+      content,
+      dismissible: true,
+      onDismiss: () => setFlashItems(prev => prev.filter(item => item.id !== id)),
+    }])
   }
 
   const addUser = async (e: React.FormEvent) => {
@@ -32,14 +48,14 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
       const data = await res.json()
       
       if (res.ok) {
-        showMessage(`✅ User ${data.username || newUsername} added successfully!`, 'success')
+        showMessage(`User ${data.username || newUsername} added successfully!`, 'success')
         setNewUsername('')
         onRefresh()
       } else {
-        showMessage(`❌ ${data.error}`, 'error')
+        showMessage(data.error, 'error')
       }
     } catch (error) {
-      showMessage(`❌ Failed to add user: ${error}`, 'error')
+      showMessage(`Failed to add user: ${error}`, 'error')
     } finally {
       setLoading(false)
     }
@@ -54,14 +70,14 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
       })
       
       if (res.ok) {
-        showMessage(`✅ User untracked successfully`, 'success')
+        showMessage('User untracked successfully', 'success')
         onRefresh()
       } else {
         const data = await res.json()
-        showMessage(`❌ ${data.error}`, 'error')
+        showMessage(data.error, 'error')
       }
     } catch (error) {
-      showMessage(`❌ Failed to untrack user: ${error}`, 'error')
+      showMessage(`Failed to untrack user: ${error}`, 'error')
     }
   }
 
@@ -74,120 +90,146 @@ export default function ManageUsersTab({ trackedUsers, untrackedUsers, onRefresh
       })
       
       if (res.ok) {
-        showMessage(`✅ User retracked successfully`, 'success')
+        showMessage('User retracked successfully', 'success')
         onRefresh()
       } else {
         const data = await res.json()
-        showMessage(`❌ ${data.error}`, 'error')
+        showMessage(data.error, 'error')
       }
     } catch (error) {
-      showMessage(`❌ Failed to retrack user: ${error}`, 'error')
+      showMessage(`Failed to retrack user: ${error}`, 'error')
     }
   }
 
   return (
-    <div className="card">
-      <h2 style={{ marginBottom: '20px', color: '#333' }}>👥 Manage Users</h2>
+    <SpaceBetween size="l">
+      <Flashbar items={flashItems} />
 
-      {message && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
-      )}
+      <Container
+        header={<Header variant="h2">➕ Add User</Header>}
+      >
+        <form onSubmit={addUser}>
+          <Form
+            actions={
+              <Button variant="primary" formAction="submit" loading={loading}>
+                Add User
+              </Button>
+            }
+          >
+            <FormField
+              label="Duolingo Username"
+              description="Enter the Duolingo username (e.g., john_doe123)"
+            >
+              <Input
+                value={newUsername}
+                onChange={({ detail }) => setNewUsername(detail.value)}
+                placeholder="Enter Duolingo Username"
+                disabled={loading}
+              />
+            </FormField>
+          </Form>
+        </form>
+      </Container>
 
-      <form onSubmit={addUser} className="user-form">
-        <div style={{ flex: 1 }}>
-          <input
-            type="text"
-            placeholder="Enter Duolingo Username"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-          />
-          <p style={{ fontSize: '0.85em', color: '#666', margin: '5px 0 0 0' }}>
-            💡 Enter the Duolingo username (e.g., john_doe123)
-          </p>
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? (
-            <>
-              <span className="spinner"></span>Adding...
-            </>
-          ) : (
-            '➕ Add User'
-          )}
-        </button>
-      </form>
-
-      <h3 style={{ marginTop: '30px', marginBottom: '15px', color: '#333' }}>
-        📊 Tracked Users ({trackedUsers.length})
-      </h3>
-      <div className="user-list">
-        {trackedUsers.map((user) => (
-          <div key={user.id} className="user-card">
-            <div className="user-info">
-              <h3>
-                {user.name || user.username || `User ${user.id}`}
-                <a 
-                  href={`https://www.duolingo.com/profile/${user.username || user.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="profile-link"
-                  title="View Duolingo Profile"
-                >
-                  🔗
-                </a>
-              </h3>
-              {user.name && user.username && (
-                <p>@{user.username}</p>
-              )}
-              <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
-            </div>
-            <button className="btn btn-danger" onClick={() => untrackUser(user.id)}>
-              Untrack
-            </button>
-          </div>
-        ))}
-        {trackedUsers.length === 0 && (
-          <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
-            No tracked users. Add some users above to get started!
-          </p>
-        )}
-      </div>
+      <Cards
+        header={
+          <Header variant="h2" counter={`(${trackedUsers.length})`}>
+            📊 Tracked Users
+          </Header>
+        }
+        cardDefinition={{
+          header: (item) => (
+            <SpaceBetween size="xs" direction="horizontal" alignItems="center">
+              <span>{item.name || item.username || `User ${item.id}`}</span>
+              <Link
+                href={`https://www.duolingo.com/profile/${item.username || item.id}`}
+                external
+                fontSize="body-s"
+              >
+                Profile
+              </Link>
+            </SpaceBetween>
+          ),
+          sections: [
+            {
+              id: 'username',
+              content: (item) => item.name && item.username ? (
+                <Box color="text-status-inactive">@{item.username}</Box>
+              ) : null,
+            },
+            {
+              id: 'id',
+              header: 'User ID',
+              content: (item) => item.id,
+            },
+            {
+              id: 'actions',
+              content: (item) => (
+                <Button variant="normal" onClick={() => untrackUser(item.id)}>
+                  Untrack
+                </Button>
+              ),
+            },
+          ],
+        }}
+        items={trackedUsers}
+        empty={
+          <Box textAlign="center" color="inherit" padding="l">
+            <SpaceBetween size="m">
+              <b>No tracked users</b>
+              <Box variant="p" color="inherit">
+                Add some users above to get started!
+              </Box>
+            </SpaceBetween>
+          </Box>
+        }
+      />
 
       {untrackedUsers.length > 0 && (
-        <>
-          <h3 style={{ marginTop: '30px', marginBottom: '15px', color: '#333' }}>
-            💤 Untracked Users ({untrackedUsers.length})
-          </h3>
-          <div className="user-list">
-            {untrackedUsers.map((user) => (
-              <div key={user.id} className="user-card" style={{ opacity: 0.7 }}>
-                <div className="user-info">
-                  <h3>
-                    {user.name || user.username || `User ${user.id}`}
-                    <a 
-                      href={`https://www.duolingo.com/profile/${user.username || user.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="profile-link"
-                      title="View Duolingo Profile"
-                    >
-                      🔗
-                    </a>
-                  </h3>
-                  {user.name && user.username && (
-                    <p>@{user.username}</p>
-                  )}
-                  <p style={{ fontSize: '0.85em', color: '#999', marginTop: '4px' }}>ID: {user.id}</p>
-                </div>
-                <button className="btn btn-secondary" onClick={() => retrackUser(user.id)}>
-                  🔄 Retrack
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
+        <Cards
+          header={
+            <Header variant="h2" counter={`(${untrackedUsers.length})`}>
+              💤 Untracked Users
+            </Header>
+          }
+          cardDefinition={{
+            header: (item) => (
+              <SpaceBetween size="xs" direction="horizontal" alignItems="center">
+                <span>{item.name || item.username || `User ${item.id}`}</span>
+                <Link
+                  href={`https://www.duolingo.com/profile/${item.username || item.id}`}
+                  external
+                  fontSize="body-s"
+                >
+                  Profile
+                </Link>
+              </SpaceBetween>
+            ),
+            sections: [
+              {
+                id: 'username',
+                content: (item) => item.name && item.username ? (
+                  <Box color="text-status-inactive">@{item.username}</Box>
+                ) : null,
+              },
+              {
+                id: 'id',
+                header: 'User ID',
+                content: (item) => item.id,
+              },
+              {
+                id: 'actions',
+                content: (item) => (
+                  <Button variant="normal" onClick={() => retrackUser(item.id)}>
+                    🔄 Retrack
+                  </Button>
+                ),
+              },
+            ],
+          }}
+          items={untrackedUsers}
+        />
       )}
-    </div>
+    </SpaceBetween>
   )
 }

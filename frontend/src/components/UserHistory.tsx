@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import './UserHistory.css'
+import Table from '@cloudscape-design/components/table'
+import Container from '@cloudscape-design/components/container'
+import Header from '@cloudscape-design/components/header'
+import SpaceBetween from '@cloudscape-design/components/space-between'
+import Button from '@cloudscape-design/components/button'
+import Box from '@cloudscape-design/components/box'
+import ColumnLayout from '@cloudscape-design/components/column-layout'
+import Badge from '@cloudscape-design/components/badge'
+import Spinner from '@cloudscape-design/components/spinner'
+import Alert from '@cloudscape-design/components/alert'
 
 interface Snapshot {
   date: string
@@ -54,33 +63,29 @@ export default function UserHistory({ userId, onBack }: UserHistoryProps) {
     const change = current - previous
     return {
       value: change,
-      className: change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral'
+      color: (change > 0 ? 'green' : change < 0 ? 'red' : 'grey') as 'green' | 'red' | 'grey',
     }
   }
 
   if (loading) {
     return (
-      <div className="user-history">
-        <div className="card">
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <span className="spinner" style={{ borderColor: '#1cb0f6', borderTopColor: 'rgba(28, 176, 246, 0.3)' }}></span>
-            <p style={{ marginTop: '20px', color: '#666' }}>Loading history...</p>
-          </div>
-        </div>
-      </div>
+      <Container>
+        <Box textAlign="center" padding="l">
+          <SpaceBetween size="m" alignItems="center">
+            <Spinner size="large" />
+            <Box>Loading history...</Box>
+          </SpaceBetween>
+        </Box>
+      </Container>
     )
   }
 
   if (error) {
     return (
-      <div className="user-history">
-        <div className="card">
-          <div className="message error">{error}</div>
-          <button className="btn btn-primary" onClick={onBack}>
-            ← Go Back
-          </button>
-        </div>
-      </div>
+      <SpaceBetween size="m">
+        <Alert type="error">{error}</Alert>
+        <Button onClick={onBack} iconName="arrow-left">Go Back</Button>
+      </SpaceBetween>
     )
   }
 
@@ -89,98 +94,100 @@ export default function UserHistory({ userId, onBack }: UserHistoryProps) {
   const name = userInfo.name
 
   return (
-    <div className="user-history">
-      <div className="card">
-        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ color: '#333', marginBottom: '5px' }}>📊 {name || username}'s History</h2>
-            {name && username && <p style={{ color: '#666', fontSize: '0.9em' }}>@{username}</p>}
-          </div>
-          <button className="btn btn-secondary" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-
+    <SpaceBetween size="l">
+      <Container
+        header={
+          <Header
+            variant="h2"
+            actions={<Button onClick={onBack} iconName="arrow-left">Back</Button>}
+            description={name && username ? `@${username}` : undefined}
+          >
+            📊 {name || username}'s History
+          </Header>
+        }
+      >
         {snapshots.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+          <Box textAlign="center" color="inherit" padding="l">
             No history data available for this user.
-          </div>
+          </Box>
         ) : (
-          <>
-            <div className="stats-summary">
-              <div className="stat-item">
-                <div className="stat-label">Current XP</div>
-                <div className="stat-value">{snapshots[0].data.totalXp?.toLocaleString() || 0}</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-label">Current Streak</div>
-                <div className="stat-value">🔥 {snapshots[0].data.streak || 0}</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-label">Days Tracked</div>
-                <div className="stat-value">{snapshots.length}</div>
-              </div>
-            </div>
+          <SpaceBetween size="l">
+            <ColumnLayout columns={3} variant="text-grid">
+              <Container>
+                <Box variant="awsui-key-label">Current XP</Box>
+                <Box variant="awsui-value-large">{snapshots[0].data.totalXp?.toLocaleString() || 0}</Box>
+              </Container>
+              <Container>
+                <Box variant="awsui-key-label">Current Streak</Box>
+                <Box variant="awsui-value-large">🔥 {snapshots[0].data.streak || 0}</Box>
+              </Container>
+              <Container>
+                <Box variant="awsui-key-label">Days Tracked</Box>
+                <Box variant="awsui-value-large">{snapshots.length}</Box>
+              </Container>
+            </ColumnLayout>
 
-            <div style={{ overflowX: 'auto', marginTop: '30px' }}>
-              <table className="history-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Total XP</th>
-                    <th>XP Change</th>
-                    <th>Streak</th>
-                    <th>Streak Change</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {snapshots.map((snapshot, index) => {
-                    const previousSnapshot = snapshots[index + 1]
-                    const xpChange = previousSnapshot
-                      ? calculateChange(
-                          snapshot.data.totalXp || 0,
-                          previousSnapshot.data.totalXp || 0
-                        )
-                      : null
-                    const streakChange = previousSnapshot
-                      ? calculateChange(
-                          snapshot.data.streak || 0,
-                          previousSnapshot.data.streak || 0
-                        )
-                      : null
-
+            <Table
+              items={snapshots}
+              stripedRows
+              stickyHeader
+              columnDefinitions={[
+                {
+                  id: 'date',
+                  header: 'Date',
+                  cell: (item) => item.date,
+                  sortingField: 'date',
+                },
+                {
+                  id: 'totalXp',
+                  header: 'Total XP',
+                  cell: (item) => (item.data.totalXp || 0).toLocaleString(),
+                },
+                {
+                  id: 'xpChange',
+                  header: 'XP Change',
+                  cell: (item) => {
+                    const idx = snapshots.indexOf(item)
+                    const prev = snapshots[idx + 1]
+                    if (!prev) return <Box color="text-status-inactive">—</Box>
+                    const change = calculateChange(item.data.totalXp || 0, prev.data.totalXp || 0)
                     return (
-                      <tr key={snapshot.date}>
-                        <td>{snapshot.date}</td>
-                        <td>{(snapshot.data.totalXp || 0).toLocaleString()}</td>
-                        <td>
-                          {xpChange ? (
-                            <span className={`change-badge ${xpChange.className}`}>
-                              {xpChange.value > 0 ? '+' : ''}{xpChange.value.toLocaleString()}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#999' }}>—</span>
-                          )}
-                        </td>
-                        <td>🔥 {snapshot.data.streak || 0}</td>
-                        <td>
-                          {streakChange ? (
-                            <span className={`change-badge ${streakChange.className}`}>
-                              {streakChange.value > 0 ? '+' : ''}{streakChange.value}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#999' }}>—</span>
-                          )}
-                        </td>
-                      </tr>
+                      <Badge color={change.color}>
+                        {change.value > 0 ? '+' : ''}{change.value.toLocaleString()}
+                      </Badge>
                     )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </>
+                  },
+                },
+                {
+                  id: 'streak',
+                  header: 'Streak',
+                  cell: (item) => `🔥 ${item.data.streak || 0}`,
+                },
+                {
+                  id: 'streakChange',
+                  header: 'Streak Change',
+                  cell: (item) => {
+                    const idx = snapshots.indexOf(item)
+                    const prev = snapshots[idx + 1]
+                    if (!prev) return <Box color="text-status-inactive">—</Box>
+                    const change = calculateChange(item.data.streak || 0, prev.data.streak || 0)
+                    return (
+                      <Badge color={change.color}>
+                        {change.value > 0 ? '+' : ''}{change.value}
+                      </Badge>
+                    )
+                  },
+                },
+              ]}
+              empty={
+                <Box textAlign="center" color="inherit" padding="l">
+                  No history data available.
+                </Box>
+              }
+            />
+          </SpaceBetween>
         )}
-      </div>
-    </div>
+      </Container>
+    </SpaceBetween>
   )
 }

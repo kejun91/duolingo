@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import './App.css'
+import AppLayout from '@cloudscape-design/components/app-layout'
+import ContentLayout from '@cloudscape-design/components/content-layout'
 import Header from './components/Header'
 import TabNavigation from './components/TabNavigation'
 import RankingsTab from './components/RankingsTab'
@@ -165,34 +166,46 @@ function App() {
   // Show user history if on history route
   if (currentView === 'history' && historyUserId) {
     return (
-      <>
-        <Header />
-        <UserHistory userId={historyUserId} onBack={showMainView} />
-      </>
+      <AppLayout
+        navigationHide
+        toolsHide
+        headerSelector="#header"
+        content={
+          <ContentLayout header={<Header />}>
+            <UserHistory userId={historyUserId} onBack={showMainView} />
+          </ContentLayout>
+        }
+      />
     )
   }
 
   return (
-    <>
-      <Header />
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      {activeTab === 'rankings' ? (
-        <RankingsTab 
-          rankings={rankings}
-          filters={filters}
-          onFiltersChange={updateFilters}
-          loading={loading}
-          onShowHistory={showUserHistory}
-        />
-      ) : (
-        <ManageUsersTab
-          trackedUsers={trackedUsers}
-          untrackedUsers={untrackedUsers}
-          onRefresh={refreshUsers}
-        />
-      )}
-    </>
+    <AppLayout
+      navigationHide
+      toolsHide
+      headerSelector="#header"
+      content={
+        <ContentLayout header={<Header />}>
+          <TabNavigation activeTab={activeTab} onTabChange={setActiveTab}>
+            {activeTab === 'rankings' ? (
+              <RankingsTab
+                rankings={rankings}
+                filters={filters}
+                onFiltersChange={updateFilters}
+                loading={loading}
+                onShowHistory={showUserHistory}
+              />
+            ) : (
+              <ManageUsersTab
+                trackedUsers={trackedUsers}
+                untrackedUsers={untrackedUsers}
+                onRefresh={refreshUsers}
+              />
+            )}
+          </TabNavigation>
+        </ContentLayout>
+      }
+    />
   )
 }
 

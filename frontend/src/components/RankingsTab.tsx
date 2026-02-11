@@ -2,6 +2,10 @@ import { Ranking } from '../App'
 import DateRangeSelector from './DateRangeSelector'
 import StatsGrid from './StatsGrid'
 import RankingsTable from './RankingsTable'
+import SpaceBetween from '@cloudscape-design/components/space-between'
+import Header from '@cloudscape-design/components/header'
+import Button from '@cloudscape-design/components/button'
+import Container from '@cloudscape-design/components/container'
 
 interface RankingsTabProps {
   rankings: Ranking[]
@@ -22,10 +26,8 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
   const exportToCSV = () => {
     if (rankings.length === 0) return
 
-    // Create CSV header
     const headers = ['Rank', 'Username', 'Name', 'User ID', 'Start XP', 'End XP', 'XP Gained', 'Daily Average', 'Streak']
     
-    // Create CSV rows
     const rows = rankings.map((ranking, index) => [
       index + 1,
       ranking.username,
@@ -38,11 +40,9 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
       ranking.streak
     ])
 
-    // Combine headers and rows
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => {
-        // Escape quotes and wrap in quotes if contains comma
         const cellStr = String(cell)
         if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
           return `"${cellStr.replace(/"/g, '""')}"`
@@ -51,7 +51,6 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
       }).join(','))
     ].join('\n')
 
-    // Create download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
@@ -65,19 +64,7 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
   }
 
   return (
-    <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, color: '#333' }}>🏆 Leaderboard</h2>
-        <button 
-          className="btn btn-secondary" 
-          onClick={exportToCSV}
-          disabled={loading || rankings.length === 0}
-          style={{ padding: '10px 20px' }}
-        >
-          📥 Export to CSV
-        </button>
-      </div>
-
+    <SpaceBetween size="l">
       <DateRangeSelector filters={filters} onFiltersChange={onFiltersChange} loading={loading} />
 
       <StatsGrid 
@@ -86,7 +73,26 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
         avgXp={avgXpGained}
       />
 
-      <RankingsTable rankings={rankings} loading={loading} onShowHistory={onShowHistory} />
-    </div>
+      <Container
+        header={
+          <Header
+            variant="h2"
+            actions={
+              <Button
+                iconName="download"
+                onClick={exportToCSV}
+                disabled={loading || rankings.length === 0}
+              >
+                Export to CSV
+              </Button>
+            }
+          >
+            🏆 Leaderboard
+          </Header>
+        }
+      >
+        <RankingsTable rankings={rankings} loading={loading} onShowHistory={onShowHistory} />
+      </Container>
+    </SpaceBetween>
   )
 }
