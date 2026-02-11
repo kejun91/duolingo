@@ -298,6 +298,8 @@ export default {
 
 // Helper: Calculate rankings between two dates
 async function calculateRankings(db: D1Database, startDate: string, endDate: string, streakMin = 0) {
+  startDate = getPreviousDate(startDate);
+
   const { results: startSnapshots } = await db.prepare(`
     SELECT user_id, userInfo
     FROM user_daily_snapshots
@@ -431,4 +433,11 @@ function getMonthStart(): string {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
   return first.toISOString().split('T')[0];
+}
+
+function getPreviousDate(isoDate): string {
+  const date = new Date(isoDate + 'T00:00:00'); // avoid timezone shift
+  date.setDate(date.getDate() - 1);
+
+  return date.toISOString().slice(0, 10);
 }
