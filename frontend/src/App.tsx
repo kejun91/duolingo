@@ -109,6 +109,7 @@ function App() {
 
   const updateFilters = async (newFilters: typeof filters) => {
     setFilters(newFilters)
+    setLoading(true)
     
     // Update URL
     const params = new URLSearchParams({
@@ -125,6 +126,8 @@ function App() {
       setRankings(data)
     } catch (error) {
       console.error('Failed to update rankings:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
