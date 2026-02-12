@@ -69,7 +69,7 @@ export default function UserHistoryCharts({ snapshots }: UserHistoryChartsProps)
     'total-xp': {
       ariaLabel: 'Total XP progression over time',
       series: [
-        { type: 'line', name: 'Total XP', data: chartData.totalXpValues, color: '#58CC02' },
+        { type: 'area', name: 'Total XP', data: chartData.totalXpValues, color: '#58CC02' },
       ],
       yAxis: {
         title: 'Total XP',
