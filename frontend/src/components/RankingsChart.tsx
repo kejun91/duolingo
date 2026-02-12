@@ -12,12 +12,10 @@ interface RankingsChartProps {
 
 export default function RankingsChart({ rankings, loading }: RankingsChartProps) {
   const chartData = useMemo(() => {
-    // Take top 10 and reverse so highest is at the top of horizontal bar chart
     const top10 = rankings.slice(0, 10)
-    const reversed = [...top10].reverse()
     return {
-      categories: reversed.map(r => r.name || r.username || `User ${r.userId}`),
-      data: reversed.map(r => r.increase),
+      categories: top10.map(r => r.name || r.username || `User ${r.userId}`),
+      data: top10.map(r => r.increase),
     }
   }, [rankings])
 
