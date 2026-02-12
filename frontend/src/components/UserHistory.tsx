@@ -7,9 +7,10 @@ import Button from '@cloudscape-design/components/button'
 import Box from '@cloudscape-design/components/box'
 import ColumnLayout from '@cloudscape-design/components/column-layout'
 import Container from '@cloudscape-design/components/container'
-import Badge from '@cloudscape-design/components/badge'
+
 import Spinner from '@cloudscape-design/components/spinner'
 import Alert from '@cloudscape-design/components/alert'
+import UserHistoryCharts from './UserHistoryCharts'
 
 interface Snapshot {
   date: string
@@ -62,11 +63,28 @@ export default function UserHistory({ userId, onBack }: UserHistoryProps) {
 
   const calculateChange = (current: number, previous: number) => {
     const change = current - previous
+    const isPositive = change > 0
+    const isNegative = change < 0
     return {
       value: change,
-      color: (change > 0 ? 'green' : change < 0 ? 'red' : 'grey') as 'green' | 'red' | 'grey',
+      bgColor: isPositive ? '#58CC02' : isNegative ? '#FF4B4B' : '#AFAFAF',
+      textColor: isPositive || isNegative ? '#FFFFFF' : '#4B4B4B',
     }
   }
+
+  const XpPill = ({ change }: { change: { value: number; bgColor: string; textColor: string } }) => (
+    <span style={{
+      display: 'inline-block',
+      padding: '2px 10px',
+      borderRadius: '12px',
+      backgroundColor: change.bgColor,
+      color: change.textColor,
+      fontWeight: 700,
+      fontSize: '13px',
+    }}>
+      {change.value > 0 ? '+' : ''}{change.value.toLocaleString()}
+    </span>
+  )
 
   if (loading) {
     return (
@@ -127,6 +145,8 @@ export default function UserHistory({ userId, onBack }: UserHistoryProps) {
             </ColumnLayout>
           </Container>
 
+          <UserHistoryCharts snapshots={snapshots} />
+
           <Table
             header={<Header variant="h2" counter={`(${snapshots.length})`}>Daily Snapshots</Header>}
             items={snapshots}
@@ -153,11 +173,7 @@ export default function UserHistory({ userId, onBack }: UserHistoryProps) {
                     const prev = snapshots[idx + 1]
                     if (!prev) return <Box color="text-status-inactive">—</Box>
                     const change = calculateChange(item.data.totalXp || 0, prev.data.totalXp || 0)
-                    return (
-                      <Badge color={change.color}>
-                        {change.value > 0 ? '+' : ''}{change.value.toLocaleString()}
-                      </Badge>
-                    )
+                    return <XpPill change={change} />
                   },
                 },
                 {
@@ -173,11 +189,7 @@ export default function UserHistory({ userId, onBack }: UserHistoryProps) {
                     const prev = snapshots[idx + 1]
                     if (!prev) return <Box color="text-status-inactive">—</Box>
                     const change = calculateChange(item.data.streak || 0, prev.data.streak || 0)
-                    return (
-                      <Badge color={change.color}>
-                        {change.value > 0 ? '+' : ''}{change.value}
-                      </Badge>
-                    )
+                    return <XpPill change={change} />
                   },
                 },
               ]}

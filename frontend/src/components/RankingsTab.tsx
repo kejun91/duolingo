@@ -1,6 +1,7 @@
 import { Ranking } from '../App'
 import DateRangeSelector from './DateRangeSelector'
 import StatsGrid from './StatsGrid'
+import RankingsChart from './RankingsChart'
 import RankingsTable from './RankingsTable'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 import Button from '@cloudscape-design/components/button'
@@ -70,6 +71,8 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
         totalXp={totalXpGained}
         avgXp={avgXpGained}
       />
+
+      <RankingsChart rankings={rankings} loading={loading} />
 
       <RankingsTable
         rankings={rankings}

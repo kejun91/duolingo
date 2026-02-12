@@ -4,7 +4,6 @@ import Box from '@cloudscape-design/components/box'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 import Button from '@cloudscape-design/components/button'
 import Link from '@cloudscape-design/components/link'
-import Badge from '@cloudscape-design/components/badge'
 import StatusIndicator from '@cloudscape-design/components/status-indicator'
 import Popover from '@cloudscape-design/components/popover'
 import Header from '@cloudscape-design/components/header'
@@ -111,11 +110,25 @@ export default function RankingsTable({ rankings, loading, onShowHistory, header
         {
           id: 'xpGained',
           header: 'XP Gained',
-          cell: (item) => (
-            <Badge color={item.increase > 0 ? 'green' : item.increase < 0 ? 'red' : 'grey'}>
-              {item.increase > 0 ? '+' : ''}{item.increase.toLocaleString()}
-            </Badge>
-          ),
+          cell: (item) => {
+            const isPositive = item.increase > 0
+            const isNegative = item.increase < 0
+            const bgColor = isPositive ? '#58CC02' : isNegative ? '#FF4B4B' : '#AFAFAF'
+            const textColor = isPositive || isNegative ? '#FFFFFF' : '#4B4B4B'
+            return (
+              <span style={{
+                display: 'inline-block',
+                padding: '2px 10px',
+                borderRadius: '12px',
+                backgroundColor: bgColor,
+                color: textColor,
+                fontWeight: 700,
+                fontSize: '13px',
+              }}>
+                {isPositive ? '+' : ''}{item.increase.toLocaleString()}
+              </span>
+            )
+          },
         },
         {
           id: 'dailyAvg',

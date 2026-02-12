@@ -18,6 +18,9 @@
    Light Mode — Duolingo Green Theme
    ======================================== */
 :root {
+  /* Font → Duolingo-style rounded font (Nunito) */
+  --font-family-base-gmnpzl: 'Nunito', 'Open Sans', 'Helvetica Neue', Roboto, Arial, sans-serif;
+
   /* Primary button → Duolingo Green */
   --color-background-button-primary-default-vdt0fu: #58CC02;
   --color-background-button-primary-hover-mo85i6: #4CAD02;
@@ -99,9 +102,17 @@
    General styling polish
    ======================================== */
 
-/* Smooth transitions for dark mode toggle */
+/* Smooth transitions for dark mode toggle + Duolingo font */
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Nunito', 'Open Sans', 'Helvetica Neue', Roboto, Arial, sans-serif !important;
+}
+
+/* Force Cloudscape components to use Nunito — !important needed
+   because Cloudscape hard-codes font-family:Open Sans on many elements */
+[class*="awsui"],
+[class*="awsui"] * {
+  font-family: 'Nunito', 'Open Sans', 'Helvetica Neue', Roboto, Arial, sans-serif !important;
 }
 
 /* Ensure the app layout fills the viewport */
