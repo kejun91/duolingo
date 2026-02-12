@@ -20,7 +20,7 @@ export default function Header() {
   }
 
   return (
-    <div id="top-nav">
+    <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002 }}>
       <TopNavigation
         identity={{
           href: '/',
@@ -41,7 +41,6 @@ export default function Header() {
           },
           {
             type: 'button',
-            text: darkMode ? 'Light Mode' : 'Dark Mode',
             ariaLabel: darkMode ? 'Switch to light mode' : 'Switch to dark mode',
             iconSvg: darkMode
               ? (
