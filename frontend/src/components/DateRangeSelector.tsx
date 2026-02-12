@@ -5,6 +5,7 @@ import SpaceBetween from '@cloudscape-design/components/space-between'
 import FormField from '@cloudscape-design/components/form-field'
 import DateRangePicker, { DateRangePickerProps } from '@cloudscape-design/components/date-range-picker'
 import Select, { SelectProps } from '@cloudscape-design/components/select'
+import Button from '@cloudscape-design/components/button'
 import Box from '@cloudscape-design/components/box'
 import ColumnLayout from '@cloudscape-design/components/column-layout'
 import Spinner from '@cloudscape-design/components/spinner'
@@ -135,6 +136,53 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
 
   const selectedStreakOption = streakOptions.find(o => o.value === String(streakMin)) || streakOptions[0]
 
+  const applyQuickFilter = (type: string) => {
+    const now = new Date()
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const hardLimit = new Date(HARD_LIMIT)
+    let fromDate: Date
+    let toDate = today
+
+    switch (type) {
+      case 'today':
+        fromDate = new Date(today)
+        break
+      case 'week':
+        fromDate = new Date(today)
+        fromDate.setUTCDate(today.getUTCDate() - today.getUTCDay())
+        break
+      case 'month':
+        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
+        break
+      case 'lastMonth':
+        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1))
+        toDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0))
+        break
+      case 'last30':
+        fromDate = new Date(today)
+        fromDate.setUTCDate(today.getUTCDate() - 30)
+        break
+      case 'last90':
+        fromDate = new Date(today)
+        fromDate.setUTCDate(today.getUTCDate() - 90)
+        break
+      case 'all':
+        fromDate = new Date(HARD_LIMIT)
+        break
+      default:
+        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
+    }
+
+    if (fromDate < hardLimit) fromDate = hardLimit
+
+    const startDate = formatUTCDate(fromDate)
+    const endDate = formatUTCDate(toDate)
+
+    const newValue: DateRangePickerProps.AbsoluteValue = { type: 'absolute', startDate, endDate }
+    setRangeValue(newValue)
+    onFiltersChange({ startDate, endDate, streakMin })
+  }
+
   return (
     <Container
       header={
@@ -144,6 +192,16 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
       }
     >
       <SpaceBetween size="m">
+        <SpaceBetween size="xs" direction="horizontal">
+          <Button onClick={() => applyQuickFilter('today')} disabled={isDisabled} variant="normal">Today</Button>
+          <Button onClick={() => applyQuickFilter('week')} disabled={isDisabled} variant="normal">This Week</Button>
+          <Button onClick={() => applyQuickFilter('month')} disabled={isDisabled} variant="normal">This Month</Button>
+          <Button onClick={() => applyQuickFilter('lastMonth')} disabled={isDisabled} variant="normal">Last Month</Button>
+          <Button onClick={() => applyQuickFilter('last30')} disabled={isDisabled} variant="normal">Last 30 Days</Button>
+          <Button onClick={() => applyQuickFilter('last90')} disabled={isDisabled} variant="normal">Last 90 Days</Button>
+          <Button onClick={() => applyQuickFilter('all')} disabled={isDisabled} variant="normal">All Time</Button>
+        </SpaceBetween>
+
         <ColumnLayout columns={2}>
           <FormField label="Date range">
             <DateRangePicker
