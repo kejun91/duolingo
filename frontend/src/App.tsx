@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
 import AppLayout from '@cloudscape-design/components/app-layout'
-import ContentLayout from '@cloudscape-design/components/content-layout'
-import CloudscapeHeader from '@cloudscape-design/components/header'
 import Tabs from '@cloudscape-design/components/tabs'
 import TopNav from './components/Header'
 import RankingsTab from './components/RankingsTab'
@@ -189,20 +187,10 @@ function App() {
         toolsHide
         headerSelector="#top-nav"
         content={
-          <ContentLayout
-            header={
-              <CloudscapeHeader
-                variant="h1"
-                description="Track XP progress and rankings over time"
-              >
-                Duolingo Progress Tracker
-              </CloudscapeHeader>
-            }
-          >
-            <Tabs
-              activeTabId={activeTab}
-              onChange={({ detail }) => setActiveTab(detail.activeTabId as 'rankings' | 'users')}
-              tabs={[
+          <Tabs
+            activeTabId={activeTab}
+            onChange={({ detail }) => setActiveTab(detail.activeTabId as 'rankings' | 'users')}
+            tabs={[
                 {
                   id: 'rankings',
                   label: 'Rankings',
@@ -227,9 +215,8 @@ function App() {
                     />
                   ),
                 },
-              ]}
-            />
-          </ContentLayout>
+            ]}
+          />
         }
       />
     </>

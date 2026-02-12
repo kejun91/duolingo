@@ -3,9 +3,8 @@ import Container from '@cloudscape-design/components/container'
 import Header from '@cloudscape-design/components/header'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 import FormField from '@cloudscape-design/components/form-field'
-import DatePicker from '@cloudscape-design/components/date-picker'
+import DateRangePicker, { DateRangePickerProps } from '@cloudscape-design/components/date-range-picker'
 import Select, { SelectProps } from '@cloudscape-design/components/select'
-import Button from '@cloudscape-design/components/button'
 import Box from '@cloudscape-design/components/box'
 import ColumnLayout from '@cloudscape-design/components/column-layout'
 import Spinner from '@cloudscape-design/components/spinner'
@@ -28,77 +27,110 @@ const streakOptions: SelectProps.Option[] = [
   { value: '100', label: 'Streak ≥ 100' },
 ]
 
+const relativeOptions: DateRangePickerProps.RelativeOption[] = [
+  { key: 'today', amount: 0, unit: 'day', type: 'relative' },
+  { key: 'last-7', amount: 7, unit: 'day', type: 'relative' },
+  { key: 'last-30', amount: 30, unit: 'day', type: 'relative' },
+  { key: 'last-90', amount: 90, unit: 'day', type: 'relative' },
+]
+
+const HARD_LIMIT = '2025-12-01'
+
 export default function DateRangeSelector({ filters, onFiltersChange, loading = false }: DateRangeSelectorProps) {
-  const [startDate, setStartDate] = useState(filters.startDate)
-  const [endDate, setEndDate] = useState(filters.endDate)
+  const [rangeValue, setRangeValue] = useState<DateRangePickerProps.Value | null>({
+    type: 'absolute',
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+  })
   const [streakMin, setStreakMin] = useState(filters.streakMin)
   const [isUpdating, setIsUpdating] = useState(false)
 
+  // Sync streak changes with debounce
   useEffect(() => {
     setIsUpdating(true)
     const timer = setTimeout(() => {
-      onFiltersChange({ startDate, endDate, streakMin })
+      onFiltersChange({ startDate: filters.startDate, endDate: filters.endDate, streakMin })
       setIsUpdating(false)
     }, 300)
-
-    return () => {
-      clearTimeout(timer)
-      setIsUpdating(false)
-    }
-  }, [startDate, endDate, streakMin])
+    return () => { clearTimeout(timer); setIsUpdating(false) }
+  }, [streakMin])
 
   const isDisabled = loading || isUpdating
 
-  const applyQuickFilter = (type: string) => {
+  const formatUTCDate = (date: Date) => {
+    const year = date.getUTCFullYear()
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const resolveRange = (value: DateRangePickerProps.Value): { startDate: string; endDate: string } => {
+    if (value.type === 'absolute') {
+      let start = value.startDate
+      if (start < HARD_LIMIT) start = HARD_LIMIT
+      return { startDate: start, endDate: value.endDate }
+    }
+
+    // Relative → compute absolute dates
     const now = new Date()
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-    const hardLimit = new Date('2025-12-01')
-    let fromDate: Date
-    let toDate = today
+    const endDate = formatUTCDate(today)
 
-    switch (type) {
-      case 'today':
-        fromDate = new Date(today)
+    if (value.amount === 0) {
+      return { startDate: endDate, endDate }
+    }
+
+    const from = new Date(today)
+    switch (value.unit) {
+      case 'day':
+        from.setUTCDate(from.getUTCDate() - value.amount)
         break
       case 'week':
-        fromDate = new Date(today)
-        fromDate.setUTCDate(today.getUTCDate() - today.getUTCDay())
+        from.setUTCDate(from.getUTCDate() - value.amount * 7)
         break
       case 'month':
-        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
+        from.setUTCMonth(from.getUTCMonth() - value.amount)
         break
-      case 'lastMonth':
-        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1))
-        toDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0))
+      case 'year':
+        from.setUTCFullYear(from.getUTCFullYear() - value.amount)
         break
-      case 'last30':
-        fromDate = new Date(today)
-        fromDate.setUTCDate(today.getUTCDate() - 30)
-        break
-      case 'last90':
-        fromDate = new Date(today)
-        fromDate.setUTCDate(today.getUTCDate() - 90)
-        break
-      case 'all':
-        fromDate = new Date('2025-12-01')
-        break
-      default:
-        fromDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
     }
 
-    if (fromDate < hardLimit) {
-      fromDate = hardLimit
+    const hardLimit = new Date(HARD_LIMIT)
+    const startDate = from < hardLimit ? HARD_LIMIT : formatUTCDate(from)
+    return { startDate, endDate }
+  }
+
+  const handleRangeChange: DateRangePickerProps['onChange'] = ({ detail }) => {
+    const newValue = detail.value
+    setRangeValue(newValue)
+
+    if (newValue) {
+      const resolved = resolveRange(newValue)
+      onFiltersChange({ ...resolved, streakMin })
+    }
+  }
+
+  const isValidRange: DateRangePickerProps.ValidationFunction = (value) => {
+    if (!value) return { valid: false, errorMessage: 'Select a date range' }
+
+    if (value.type === 'absolute') {
+      if (!value.startDate || !value.endDate) {
+        return { valid: false, errorMessage: 'Provide both start and end dates' }
+      }
+      if (value.startDate > value.endDate) {
+        return { valid: false, errorMessage: 'Start date must be before end date' }
+      }
+      if (value.startDate < HARD_LIMIT) {
+        return { valid: false, errorMessage: `Earliest available date is ${HARD_LIMIT}` }
+      }
     }
 
-    const formatUTCDate = (date: Date) => {
-      const year = date.getUTCFullYear()
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-      const day = String(date.getUTCDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
+    if (value.type === 'relative' && value.amount < 0) {
+      return { valid: false, errorMessage: 'Duration must be positive' }
     }
 
-    setStartDate(formatUTCDate(fromDate))
-    setEndDate(formatUTCDate(toDate))
+    return { valid: true }
   }
 
   const selectedStreakOption = streakOptions.find(o => o.value === String(streakMin)) || streakOptions[0]
@@ -106,45 +138,56 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
   return (
     <Container
       header={
-        <Header
-          variant="h3"
-          description="All dates are in UTC timezone"
-        >
-          📅 Date Range
+        <Header variant="h2" description="All dates are in UTC timezone">
+          Date Range
         </Header>
       }
     >
       <SpaceBetween size="m">
-        <SpaceBetween size="xs" direction="horizontal">
-          <Button onClick={() => applyQuickFilter('today')} disabled={isDisabled} variant="normal">Today</Button>
-          <Button onClick={() => applyQuickFilter('week')} disabled={isDisabled} variant="normal">This Week</Button>
-          <Button onClick={() => applyQuickFilter('month')} disabled={isDisabled} variant="normal">This Month</Button>
-          <Button onClick={() => applyQuickFilter('lastMonth')} disabled={isDisabled} variant="normal">Last Month</Button>
-          <Button onClick={() => applyQuickFilter('last30')} disabled={isDisabled} variant="normal">Last 30 Days</Button>
-          <Button onClick={() => applyQuickFilter('last90')} disabled={isDisabled} variant="normal">Last 90 Days</Button>
-          <Button onClick={() => applyQuickFilter('all')} disabled={isDisabled} variant="normal">All Time</Button>
-        </SpaceBetween>
-
-        <ColumnLayout columns={3}>
-          <FormField label="From Date">
-            <DatePicker
-              value={startDate}
-              onChange={({ detail }) => setStartDate(detail.value)}
+        <ColumnLayout columns={2}>
+          <FormField label="Date range">
+            <DateRangePicker
+              value={rangeValue}
+              onChange={handleRangeChange}
+              isValidRange={isValidRange}
+              relativeOptions={relativeOptions}
+              rangeSelectorMode="default"
+              dateOnly
               disabled={isDisabled}
-              placeholder="YYYY-MM-DD"
+              placeholder="Select a date range"
+              i18nStrings={{
+                todayAriaLabel: 'Today',
+                nextMonthAriaLabel: 'Next month',
+                previousMonthAriaLabel: 'Previous month',
+                relativeModeTitle: 'Relative',
+                absoluteModeTitle: 'Absolute',
+                relativeRangeSelectionHeading: 'Choose a range',
+                cancelButtonLabel: 'Cancel',
+                clearButtonLabel: 'Clear',
+                applyButtonLabel: 'Apply',
+                customRelativeRangeDurationLabel: 'Duration',
+                customRelativeRangeDurationPlaceholder: 'Enter duration',
+                customRelativeRangeOptionLabel: 'Custom range',
+                customRelativeRangeOptionDescription: 'Set a custom range in the past',
+                customRelativeRangeUnitLabel: 'Unit of time',
+                formatRelativeRange: (value) => {
+                  if (value.amount === 0) return 'Today'
+                  const unit = value.amount === 1 ? value.unit : `${value.unit}s`
+                  return `Last ${value.amount} ${unit}`
+                },
+                formatUnit: (unit, value) => {
+                  const plural = value !== 1 ? 's' : ''
+                  return `${unit}${plural}`
+                },
+                startDateLabel: 'Start date',
+                endDateLabel: 'End date',
+                dateConstraintText: `Range starts from ${HARD_LIMIT}`,
+                errorIconAriaLabel: 'Error',
+              }}
             />
           </FormField>
 
-          <FormField label="To Date">
-            <DatePicker
-              value={endDate}
-              onChange={({ detail }) => setEndDate(detail.value)}
-              disabled={isDisabled}
-              placeholder="YYYY-MM-DD"
-            />
-          </FormField>
-
-          <FormField label="Streak Filter">
+          <FormField label="Streak filter">
             <Select
               selectedOption={selectedStreakOption}
               onChange={({ detail }) => setStreakMin(Number(detail.selectedOption.value))}
@@ -154,14 +197,11 @@ export default function DateRangeSelector({ filters, onFiltersChange, loading = 
           </FormField>
         </ColumnLayout>
 
-        <Box color="text-status-info" fontSize="body-s">
-          <strong>Current Range:</strong> {filters.startDate} to {filters.endDate}
-          {isDisabled && (
-            <Box variant="span" margin={{ left: 's' }}>
-              <Spinner size="normal" /> Updating...
-            </Box>
-          )}
-        </Box>
+        {isDisabled && (
+          <Box color="text-status-info" fontSize="body-s">
+            <Spinner size="normal" /> Updating...
+          </Box>
+        )}
       </SpaceBetween>
     </Container>
   )
