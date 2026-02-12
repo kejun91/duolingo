@@ -66,13 +66,13 @@ export default function RankingsTab({ rankings, filters, onFiltersChange, loadin
     <SpaceBetween size="l">
       <DateRangeSelector filters={filters} onFiltersChange={onFiltersChange} loading={loading} />
 
-      <RankingsChart rankings={rankings} loading={loading} />
-
       <StatsGrid 
         activeUsers={rankings.length}
         totalXp={totalXpGained}
         avgXp={avgXpGained}
       />
+
+      <RankingsChart rankings={rankings} loading={loading} />
 
       <RankingsTable
         rankings={rankings}
