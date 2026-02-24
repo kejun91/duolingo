@@ -251,20 +251,30 @@ export default {
 
     // Get all users (regardless of is_tracked status - we fetch data for everyone)
     const { results: users } = await env.DB.prepare(
-      "SELECT id FROM users"
+      "SELECT id, username FROM users"
     ).all();
 
     for (const user of users) {
       const userId = user.id as number;
+      const userUsername = user.username as string | null;
+      if (!userUsername) {
+        console.warn(`User ${userId} has no username stored, skipping`);
+        continue;
+      }
       try {
-        // Fetch user data from Duolingo
-        const res = await fetch(`https://www.duolingo.com/2017-06-30/users/${userId}`);
+        // Fetch user data from Duolingo using username-based endpoint
+        const res = await fetch(`https://www.duolingo.com/2017-06-30/users?username=${encodeURIComponent(userUsername)}`);
         if (!res.ok) {
-          console.warn(`Failed to fetch user ${userId}: ${res.status}`);
+          console.warn(`Failed to fetch user ${userId} (${userUsername}): ${res.status}`);
           continue;
         }
 
-        const data: any = await res.json();
+        const resBody: any = await res.json();
+        const data: any = resBody?.users?.[0];
+        if (!data) {
+          console.warn(`No user data returned for ${userUsername}`);
+          continue;
+        }
         const userInfoJson = JSON.stringify(data);
 
         // Insert into daily snapshots (idempotent - UNIQUE constraint prevents duplicates)
@@ -435,7 +445,7 @@ function getMonthStart(): string {
   return first.toISOString().split('T')[0];
 }
 
-function getPreviousDate(isoDate): string {
+function getPreviousDate(isoDate: string): string {
   const date = new Date(isoDate + 'T00:00:00'); // avoid timezone shift
   date.setDate(date.getDate() - 1);
 
